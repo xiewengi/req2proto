@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="saas">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>req2proto · 组件库速查</title>
+<style>
+/* ============================================================
+   theme.css — 设计 token 单一来源
+   用法：<html data-theme="medical"> 切换行业主题
+   不写 hex 在别处；所有组件只引用 var(--*)
+   ============================================================ */
+
+/* ---------- 1. 中性底座（所有主题共用） ---------- */
+:root {
+  /* 背景层级：页面 → 卡片 → 悬浮 */
+  --c-bg: #f7f8fa;
+  --c-surface: #ffffff;
+  --c-surface-2: #f2f4f7;
+  --c-surface-3: #e8ebf0;
+
+  /* 描边 */
+  --c-border: #e4e8ee;
+  --c-border-strong: #cfd6e0;
+
+  /* 文字层级：主 → 次 → 弱 */
+  --c-text: #0f172a;
+  --c-text-2: #4a5568;
+  --c-text-3: #8a94a6;
+  --c-text-inverse: #ffffff;
+
+  /* 语义色（状态不可用品牌色替代） */
+  --c-success: #0f766e;
+  --c-success-soft: #e6f7f5;
+  --c-warning: #b45309;
+  --c-warning-soft: #fef3e2;
+  --c-danger: #b91c1c;
+  --c-danger-soft: #feecec;
+  --c-info: #0369a1;
+  --c-info-soft: #e6f2fb;
+
+  /* 圆角 */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-full: 999px;
+
+  /* 间距（4 的倍数，禁止碎数） */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* 字号阶梯（5 档，禁止跳档） */
+  --f-xs: 12px;
+  --f-sm: 13px;
+  --f-md: 14px;
+  --f-lg: 16px;
+  --f-xl: 20px;
+  --f-2xl: 28px;
+  --f-3xl: 36px;
+
+  /* 行高 */
+  --lh-tight: 1.3;
+  --lh-normal: 1.6;
+
+  /* 字重 */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+
+  /* 阴影（一层柔和，不用硬投影） */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, .12);
+  --shadow-xl: 0 24px 56px rgba(15, 23, 42, .18);
+
+  /* 字体栈（系统字体，零外部请求） */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* 动效 */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --dur-fast: 120ms;
+  --dur-normal: 200ms;
+  --dur-slow: 320ms;
+
+  /* 布局 */
+  --sidebar-w: 232px;
+  --header-h: 56px;
+  --content-max: 1280px;
+}
+
+/* ---------- 2. 行业主题（只覆盖品牌色系，中性底座不动） ---------- */
+
+/* 默认：SaaS / 工具型 — 靛蓝，科技感 */
+:root,
+[data-theme="saas"] {
+  --c-brand: #4f46e5;
+  --c-brand-hover: #3730a3;
+  --c-brand-ink: #4f46e5;
+  --c-brand-soft: #eef0ff;
+  --c-brand-line: #b9b8f9;
+  --c-focus: rgba(79, 70, 229, .32);
+}
+
+/* 医疗健康 — 青绿，专业不刺眼；避开"环保绿"的廉价感 */
+[data-theme="medical"] {
+  --c-brand: #0f766e;
+  --c-brand-hover: #115e59;
+  --c-brand-ink: #0a8279;
+  --c-brand-soft: #e6f7f5;
+  --c-brand-line: #99ddd6;
+  --c-focus: rgba(15, 118, 110, .32);
+}
+
+/* 政企 / 政务 — 正蓝，权威可信；国内政企系统的事实标准色 */
+[data-theme="gov"] {
+  --c-brand: #165dff;
+  --c-brand-hover: #0b4fd1;
+  --c-brand-ink: #165dff;
+  --c-brand-soft: #e8f1ff;
+  --c-brand-line: #a8c8ff;
+  --c-focus: rgba(22, 93, 255, .32);
+}
+
+/* 金融 / 银行 — 深藏青，稳健；降饱和避免"促销感" */
+[data-theme="finance"] {
+  --c-brand: #123a6b;
+  --c-brand-hover: #0d2b50;
+  --c-brand-ink: #123a6b;
+  --c-brand-soft: #e9eff7;
+  --c-brand-line: #a9bdd6;
+  --c-focus: rgba(18, 58, 107, .32);
+}
+
+/* 教育 — 墨橙，活力但不喧闹；和 K12 满屏蓝做区分 */
+[data-theme="education"] {
+  --c-brand: #c2410c;
+  --c-brand-hover: #9a3412;
+  --c-brand-ink: #c2410c;
+  --c-brand-soft: #fff1e6;
+  --c-brand-line: #ffc193;
+  --c-focus: rgba(194, 65, 12, .32);
+}
+
+/* 电商 / 零售 — 玫红，促销紧迫感；比大红更现代 */
+[data-theme="ecommerce"] {
+  --c-brand: #be123c;
+  --c-brand-hover: #9f1239;
+  --c-brand-ink: #e11d48;
+  --c-brand-soft: #ffe9ee;
+  --c-brand-line: #fda4b8;
+  --c-focus: rgba(190, 18, 60, .32);
+}
+
+/* 数据 / 分析 — 深青，理性冷静；适合密集表格不疲劳 */
+[data-theme="data"] {
+  --c-brand: #0e7490;
+  --c-brand-hover: #155e75;
+  --c-brand-ink: #0e7490;
+  --c-brand-soft: #e0f7fc;
+  --c-brand-line: #7dd3e8;
+  --c-focus: rgba(14, 116, 144, .32);
+}
+
+/* 生活服务 — 陶土橙，亲和温暖；降饱和避开外卖平台的荧光橙 */
+[data-theme="life"] {
+  --c-brand: #b04a26;
+  --c-brand-hover: #8f3c1f;
+  --c-brand-ink: #c0502a;
+  --c-brand-soft: #fff0ea;
+  --c-brand-line: #ffb59b;
+  --c-focus: rgba(176, 74, 38, .32);
+}
+
+/* ---------- 3. 暗色模式（可选，加 data-dark="1"） ---------- */
+[data-dark="1"] {
+  --c-bg: #0b1220;
+  --c-surface: #131b2b;
+  --c-surface-2: #1b2437;
+  --c-surface-3: #232e44;
+  --c-border: #263149;
+  --c-border-strong: #37445f;
+  --c-text: #e8edf5;
+  --c-text-2: #a3aec2;
+  --c-text-3: #6f7d94;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, .5);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, .6);
+}
+
+/* 暗色下品牌色提亮，保证在深底上可读 */
+[data-dark="1"][data-theme="saas"]      { --c-brand: #818cf8; --c-brand-hover: #a5b4fc; --c-brand-ink: #a5b4fc; --c-brand-soft: #1e1b4b; --c-brand-line: #4338ca; }
+[data-dark="1"][data-theme="medical"]   { --c-brand: #2dd4bf; --c-brand-hover: #5eead4; --c-brand-ink: #5eead4; --c-brand-soft: #0f2e2b; --c-brand-line: #115e59; }
+[data-dark="1"][data-theme="gov"]       { --c-brand: #4d87ff; --c-brand-hover: #7aa6ff; --c-brand-ink: #7aa6ff; --c-brand-soft: #0f1f3d; --c-brand-line: #1e40af; }
+[data-dark="1"][data-theme="finance"]   { --c-brand: #6b93c9; --c-brand-hover: #8fb0dd; --c-brand-ink: #8fb0dd; --c-brand-soft: #14243b; --c-brand-line: #2c4a72; }
+[data-dark="1"][data-theme="education"] { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a08; --c-brand-line: #9a3412; }
+[data-dark="1"][data-theme="ecommerce"] { --c-brand: #fb7185; --c-brand-hover: #fda4af; --c-brand-ink: #fda4af; --c-brand-soft: #3b0a1a; --c-brand-line: #9f1239; }
+[data-dark="1"][data-theme="data"]      { --c-brand: #22d3ee; --c-brand-hover: #67e8f9; --c-brand-ink: #67e8f9; --c-brand-soft: #0a2a33; --c-brand-line: #155e75; }
+[data-dark="1"][data-theme="life"]      { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a0d; --c-brand-line: #8f3c1f; }
+
+/* ---------- 4. 无障碍降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+</style>
+<style>
+/* ============================================================
+   shared.css — 组件骨架
+   只引用 var(--*)，不写死任何颜色/尺寸
+   依赖 theme.css，必须在其后引入
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--f-md);
+  line-height: var(--lh-normal);
+  color: var(--c-text);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 布局骨架 ---------- */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex: 0 0 var(--sidebar-w);
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-4) var(--s-3);
+  gap: var(--s-1);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-4);
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.sidebar__brand-mark {
+  width: 28px; height: 28px;
+  border-radius: var(--r-md);
+  background: var(--c-brand);
+  color: var(--c-text-inverse);
+  display: grid; place-items: center;
+  font-size: var(--f-md);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--c-text-2);
+  font-size: var(--f-md);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.nav-item:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.nav-item[aria-current="page"],
+.nav-item.is-active {
+  background: var(--c-brand-soft);
+  color: var(--c-brand-ink);
+  font-weight: var(--fw-medium);
+}
+
+.nav-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+.nav-group {
+  padding: var(--s-4) var(--s-3) var(--s-1);
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  font-weight: var(--fw-medium);
+  letter-spacing: .04em;
+}
+
+.main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.topbar {
+  height: var(--header-h);
+  flex: 0 0 var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-5);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.topbar__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.topbar__spacer { flex: 1 1 auto; }
+
+.content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-5);
+}
+
+.content__inner { max-width: var(--content-max); margin: 0 auto; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: var(--f-md);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--c-focus);
+}
+
+.btn--primary {
+  background: var(--c-brand);
+  color: var(--c-text-inverse);
+}
+.btn--primary:hover { background: var(--c-brand-hover); }
+
+.btn--secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-color: var(--c-border-strong);
+}
+.btn--secondary:hover { background: var(--c-surface-2); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--c-text-2);
+}
+.btn--ghost:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.btn--danger {
+  background: var(--c-danger);
+  color: var(--c-text-inverse);
+}
+
+.btn--sm { height: 28px; padding: 0 var(--s-3); font-size: var(--f-sm); }
+.btn--lg { height: 44px; padding: 0 var(--s-5); font-size: var(--f-lg); }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn--loading { position: relative; color: transparent !important; }
+.btn--loading::after {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--c-text-inverse);
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+
+.card--flush { padding: 0; overflow: hidden; }
+
+.card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.card__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.card__body { padding: var(--s-5); }
+
+/* ---------- 表格 ---------- */
+.table { width: 100%; border-collapse: collapse; font-size: var(--f-md); }
+
+.table th {
+  text-align: left;
+  font-weight: var(--fw-medium);
+  font-size: var(--f-sm);
+  color: var(--c-text-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+  vertical-align: middle;
+}
+
+.table tbody tr { transition: background var(--dur-fast) var(--ease); }
+.table tbody tr:hover { background: var(--c-surface-2); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table__num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 标签 / 徽章 ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 22px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  font-size: var(--f-xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+}
+
+.badge--success { background: var(--c-success-soft); color: var(--c-success); }
+.badge--warning { background: var(--c-warning-soft); color: var(--c-warning); }
+.badge--danger  { background: var(--c-danger-soft);  color: var(--c-danger); }
+.badge--info    { background: var(--c-info-soft);    color: var(--c-info); }
+.badge--brand   { background: var(--c-brand-soft);   color: var(--c-brand-ink); }
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+/* ---------- 表单 ---------- */
+.field { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.field__label {
+  font-size: var(--f-sm);
+  font-weight: var(--fw-medium);
+  color: var(--c-text-2);
+}
+
+.field__label .req { color: var(--c-danger); margin-left: 2px; }
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: var(--f-md);
+  color: var(--c-text);
+  background: var(--c-surface);
+  transition: border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+
+.input::placeholder, .textarea::placeholder { color: var(--c-text-3); }
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px var(--c-focus);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--c-danger);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, .16);
+}
+
+.field__error {
+  font-size: var(--f-xs);
+  color: var(--c-danger);
+  display: none;
+}
+
+.field.has-error .field__error { display: block; }
+
+.textarea { min-height: 88px; resize: vertical; }
+
+/* ---------- 空态 / 错误态 / 加载态 ---------- */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-8) var(--s-5);
+  text-align: center;
+}
+
+.state__icon {
+  width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+}
+
+.state__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.state__desc {
+  font-size: var(--f-md);
+  color: var(--c-text-2);
+  margin: 0;
+  max-width: 420px;
+}
+
+.state--error .state__icon { background: var(--c-danger-soft); color: var(--c-danger); }
+
+/* 骨架屏 */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--c-surface-2) 0%,
+    var(--c-surface-3) 50%,
+    var(--c-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--r-sm);
+  height: 14px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- 抽屉 ---------- */
+.drawer-mask {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 40;
+}
+
+.drawer-mask.is-open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(520px, 92vw);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xl);
+  transform: translateX(100%);
+  transition: transform var(--dur-normal) var(--ease);
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer.is-open { transform: translateX(0); }
+
+.drawer__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.drawer__title { font-size: var(--f-lg); font-weight: var(--fw-bold); margin: 0; flex: 1 1 auto; }
+.drawer__body { flex: 1 1 auto; overflow-y: auto; padding: var(--s-5); }
+.drawer__footer {
+  display: flex; justify-content: flex-end; gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--c-border);
+}
+
+/* ---------- 弹窗 ---------- */
+.modal-mask {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .38);
+  display: grid; place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 50;
+  padding: var(--s-5);
+}
+
+.modal-mask.is-open { opacity: 1; pointer-events: auto; }
+
+.modal {
+  width: min(480px, 100%);
+  background: var(--c-surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl);
+  transform: scale(.96) translateY(8px);
+  transition: transform var(--dur-normal) var(--ease);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-mask.is-open .modal { transform: scale(1) translateY(0); }
+
+.modal__header {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-5) var(--s-5) var(--s-4);
+}
+
+.modal__title { font-size: var(--f-lg); font-weight: var(--fw-bold); margin: 0; flex: 1 1 auto; }
+.modal__body { padding: 0 var(--s-5) var(--s-5); overflow-y: auto; display: grid; gap: var(--s-4); }
+.modal__footer {
+  display: flex; justify-content: flex-end; gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--c-border);
+}
+
+/* 关闭按钮 */
+.icon-btn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: none; background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--c-text-3);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  flex: 0 0 auto;
+}
+
+.icon-btn:hover { background: var(--c-surface-2); color: var(--c-text); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* ---------- Toast ---------- */
+.toast-stack {
+  position: fixed;
+  right: var(--s-5); bottom: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-2);
+  z-index: 60;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-width: 240px; max-width: 380px;
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-text);
+  color: var(--c-bg);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--f-md);
+  animation: toast-in var(--dur-normal) var(--ease);
+}
+
+.toast--success { background: var(--c-success); color: #fff; }
+.toast--danger  { background: var(--c-danger);  color: #fff; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast.is-leaving {
+  animation: toast-out var(--dur-normal) var(--ease) forwards;
+}
+
+@keyframes toast-out {
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- 工具类 ---------- */
+.row { display: flex; align-items: center; gap: var(--s-3); }
+.row--between { justify-content: space-between; }
+.col { display: flex; flex-direction: column; gap: var(--s-2); }
+.muted { color: var(--c-text-2); }
+.dim { color: var(--c-text-3); }
+.mono { font-family: var(--font-mono); font-size: var(--f-sm); }
+.nowrap { white-space: nowrap; }
+.grow { flex: 1 1 auto; }
+
+.section-title {
+  font-size: var(--f-sm);
+  font-weight: var(--fw-bold);
+  color: var(--c-text-3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0 0 var(--s-3);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--c-border-strong);
+  border-radius: var(--r-full);
+  border: 2px solid var(--c-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--c-text-3); }
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.tab {
+  padding: var(--s-3) var(--s-4);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--f-md);
+  color: var(--c-text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease);
+}
+
+.tab:hover { color: var(--c-text); }
+
+.tab[aria-selected="true"] {
+  color: var(--c-brand-ink);
+  border-bottom-color: var(--c-brand);
+  font-weight: var(--fw-medium);
+}
+
+/* ---------- 分页 ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--s-2);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.page-btn:hover:not(:disabled) { background: var(--c-surface-2); }
+
+.page-btn[aria-current="page"] {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: var(--c-text-inverse);
+  font-weight: var(--fw-medium);
+}
+
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ---------- 面包屑 ---------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  flex-wrap: wrap;
+}
+
+.breadcrumb a {
+  color: var(--c-text-2);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover { color: var(--c-brand-ink); text-decoration: underline; }
+
+.breadcrumb__sep { color: var(--c-text-3); user-select: none; }
+
+.breadcrumb [aria-current="page"] { color: var(--c-text); font-weight: var(--fw-medium); }
+
+/* ---------- 头像 ---------- */
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: var(--r-full);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-ink);
+  display: grid; place-items: center;
+  font-size: var(--f-sm);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.avatar--sm { width: 24px; height: 24px; font-size: var(--f-xs); }
+.avatar--lg { width: 40px; height: 40px; font-size: var(--f-md); }
+
+/* ---------- 分割线 ---------- */
+.divider {
+  height: 1px;
+  background: var(--c-border);
+  border: none;
+  margin: var(--s-4) 0;
+}
+
+/* ---------- 搜索框 ---------- */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search svg {
+  position: absolute;
+  left: var(--s-3);
+  width: 14px; height: 14px;
+  color: var(--c-text-3);
+  pointer-events: none;
+}
+
+.search .input { padding-left: 34px; }
+
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.toolbar__spacer { flex: 1 1 auto; }
+
+/* ---------- 描述列表 ---------- */
+.desc-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-3) var(--s-5);
+  font-size: var(--f-md);
+}
+
+.desc-list dt { color: var(--c-text-3); font-size: var(--f-sm); }
+.desc-list dd { margin: 0; color: var(--c-text); }
+
+/* ---------- 步骤条 ---------- */
+.steps { display: flex; align-items: center; gap: var(--s-2); }
+
+.step {
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--f-sm);
+  color: var(--c-text-3);
+}
+
+.step__num {
+  width: 22px; height: 22px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  display: grid; place-items: center;
+  font-size: var(--f-xs);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.step.is-active { color: var(--c-text); font-weight: var(--fw-medium); }
+.step.is-active .step__num { background: var(--c-brand); color: var(--c-text-inverse); }
+.step.is-done .step__num { background: var(--c-success); color: #fff; }
+
+.step__line {
+  width: 24px; height: 1px;
+  background: var(--c-border-strong);
+  flex: 0 0 auto;
+}
+
+/* ---------- 多选框 / 单选框 ---------- */
+.checkbox, .radio {
+  width: 16px; height: 16px;
+  accent-color: var(--c-brand);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+/* ---------- 开关 ---------- */
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  border-radius: var(--r-full);
+  background: var(--c-border-strong);
+  border: none;
+  cursor: pointer;
+  transition: background var(--dur-normal) var(--ease);
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-normal) var(--ease);
+}
+
+.switch[aria-checked="true"] { background: var(--c-brand); }
+.switch[aria-checked="true"]::after { transform: translateX(16px); }
+
+/* ---------- 进度条 ---------- */
+.progress {
+  height: 6px;
+  background: var(--c-surface-3);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--c-brand);
+  border-radius: var(--r-full);
+  transition: width var(--dur-slow) var(--ease);
+}
+
+/* ---------- 提示条 ---------- */
+.alert {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: var(--f-md);
+  border: 1px solid transparent;
+}
+
+.alert--info    { background: var(--c-info-soft);    color: var(--c-info);    border-color: var(--c-info); }
+.alert--success { background: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success); }
+.alert--warning { background: var(--c-warning-soft); color: var(--c-warning); border-color: var(--c-warning); }
+.alert--danger  { background: var(--c-danger-soft);  color: var(--c-danger);  border-color: var(--c-danger); }
+
+/* ---------- 列表项 ---------- */
+.list { display: flex; flex-direction: column; }
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.list-item:last-child { border-bottom: none; }
+.list-item:hover { background: var(--c-surface-2); }
+
+/* ---------- 描述文字 ---------- */
+.help-text {
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+}
+
+/* ---------- 评审侧栏（req2proto 专属） ---------- */
+.review-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(360px, 92vw);
+  background: var(--c-surface);
+  border-left: 1px solid var(--c-border);
+  box-shadow: var(--shadow-xl);
+  transform: translateX(100%);
+  transition: transform var(--dur-normal) var(--ease);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+}
+
+.review-panel.is-open { transform: translateX(0); }
+
+.review-panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.review-panel__head h2 { flex: 1 1 auto; }
+
+.review-panel__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-3) var(--s-2);
+}
+
+.review-summary {
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  padding: var(--s-2) var(--s-3) var(--s-3);
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--s-2);
+}
+
+.review-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  font-size: var(--f-sm);
+}
+
+.review-row__icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.review-row__id {
+  font-family: var(--font-mono);
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  flex: 0 0 auto;
+}
+
+.review-row__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-row__meta { font-size: var(--f-xs); color: var(--c-text-3); flex: 0 0 auto; }
+
+.review-row--ok .review-row__icon { background: var(--c-success-soft); color: var(--c-success); }
+.review-row--warn .review-row__icon { background: var(--c-warning-soft); color: var(--c-warning); }
+.review-row--bad .review-row__icon { background: var(--c-danger-soft); color: var(--c-danger); }
+.review-row--info .review-row__icon { background: var(--c-info-soft); color: var(--c-info); }
+
+.review-row--bad { background: var(--c-danger-soft); }
+.review-row--warn { background: var(--c-warning-soft); }
+
+.review-sep {
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  padding: var(--s-3) var(--s-3) var(--s-1);
+  font-weight: var(--fw-medium);
+}
+
+</style>
+<style>
+/* ===== 速查页自身布局（不进入原型） ===== */
+body { padding: 0; }
+.doc { display: flex; min-height: 100vh; }
+
+.doc__side {
+  position: sticky; top: 0;
+  width: 210px; flex: 0 0 210px;
+  height: 100vh; overflow-y: auto;
+  padding: var(--s-5) var(--s-3);
+  border-right: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.doc__side h1 { font-size: var(--f-lg); margin: 0 0 var(--s-1); padding: 0 var(--s-3); }
+.doc__side p { font-size: var(--f-xs); color: var(--c-text-3); margin: 0 0 var(--s-5); padding: 0 var(--s-3); }
+
+.side-link {
+  display: block;
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  text-decoration: none;
+  border-radius: var(--r-sm);
+  transition: background var(--dur-fast) var(--ease);
+}
+.side-link:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.doc__main { flex: 1 1 auto; padding: var(--s-6); min-width: 0; }
+.doc__top {
+  display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
+  padding-bottom: var(--s-5); margin-bottom: var(--s-6);
+  border-bottom: 1px solid var(--c-border);
+}
+.doc__top h2 { margin: 0; font-size: var(--f-xl); }
+.doc__top .grow { flex: 1 1 auto; }
+
+.cmp {
+  margin-bottom: var(--s-7);
+  padding-bottom: var(--s-6);
+  border-bottom: 1px solid var(--c-border);
+}
+.cmp:last-child { border-bottom: none; }
+.cmp__head { margin-bottom: var(--s-4); }
+.cmp__title-wrap { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
+.cmp__title { font-size: var(--f-xl); margin: 0; }
+.cmp__api {
+  font-size: var(--f-xs);
+  color: var(--c-brand-ink);
+  background: var(--c-brand-soft);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+}
+.cmp__desc { margin: var(--s-2) 0 0; font-size: var(--f-sm); color: var(--c-text-2); }
+.cmp__note { color: var(--c-text-3); }
+.cmp__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: var(--s-4);
+  align-items: start;
+}
+@media (max-width: 900px) { .cmp__grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
+.cmp__cell {
+  border: 1px dashed var(--c-border-strong);
+  border-radius: var(--r-md);
+  padding: var(--s-3);
+  background: var(--c-surface);
+  min-width: 0;
+  overflow: hidden;
+}
+.cmp__label {
+  display: block;
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  margin-bottom: var(--s-3);
+  font-family: var(--font-mono);
+}
+.cmp__demo { display: flex; align-items: center; justify-content: center; min-height: 60px; flex-wrap: wrap; gap: var(--s-2); }
+.cmp__demo > table { width: 100%; }
+.cmp__demo > .field,
+.cmp__demo > .search,
+.cmp__demo > .toolbar { width: 100%; }
+.cmp__demo > .state { width: 100%; padding: var(--s-5) var(--s-3); }
+</style>
+</head>
+<body>
+<div class="doc">
+  <aside class="doc__side">
+    <h1>组件库</h1>
+    <p>req2proto · 22 组件</p>
+    <a class="side-link" href="#cmp-button">按钮</a><a class="side-link" href="#cmp-size">按钮尺寸</a><a class="side-link" href="#cmp-input">输入框</a><a class="side-link" href="#cmp-select">选择器</a><a class="side-link" href="#cmp-badge">标签 / 徽章</a><a class="side-link" href="#cmp-table">表格</a><a class="side-link" href="#cmp-state">空态 / 错误态</a><a class="side-link" href="#cmp-skeleton">骨架屏</a><a class="side-link" href="#cmp-card">卡片</a><a class="side-link" href="#cmp-tabs">标签页</a><a class="side-link" href="#cmp-pagination">分页</a><a class="side-link" href="#cmp-breadcrumb">面包屑</a><a class="side-link" href="#cmp-avatar">头像</a><a class="side-link" href="#cmp-form-controls">开关 / 勾选</a><a class="side-link" href="#cmp-alert">提示条</a><a class="side-link" href="#cmp-toast">Toast</a><a class="side-link" href="#cmp-steps">步骤条</a><a class="side-link" href="#cmp-progress">进度条</a><a class="side-link" href="#cmp-list">列表项</a><a class="side-link" href="#cmp-toolbar">工具栏 / 搜索</a><a class="side-link" href="#cmp-drawer">抽屉</a><a class="side-link" href="#cmp-modal">弹窗</a>
+  </aside>
+
+  <main class="doc__main">
+    <div class="doc__top">
+      <h2>组件速查</h2>
+      <span class="badge badge--brand" id="cur-theme">saas</span>
+      <span class="grow"></span>
+      <label class="row" style="font-size:13px;color:var(--c-text-2)">
+        主题
+        <select class="select" id="theme-pick" style="width:150px"><option value="saas">SaaS 靛蓝</option><option value="medical">医疗青绿</option><option value="gov">政企正蓝</option><option value="finance">金融藏青</option><option value="education">教育墨橙</option><option value="ecommerce">电商玫红</option><option value="data">数据深青</option><option value="life">生活陶土</option></select>
+      </label>
+      <label class="row" style="font-size:13px;color:var(--c-text-2)">
+        <input type="checkbox" class="checkbox" id="dark-pick"> 暗色
+      </label>
+      <label class="row" style="font-size:13px;color:var(--c-text-2)">
+        <input type="checkbox" class="checkbox" id="rel-pick" checked> 真实路由
+      </label>
+    </div>
+
+    
+<section class="cmp" id="cmp-button">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">按钮</h2>
+      <code class="cmp__api">.btn + .btn--primary / --secondary / --ghost / --danger</code>
+    </div>
+    <p class="cmp__desc">主操作一屏最多 1 个主按钮。 <span class="cmp__note">规格：高 36px（sm 28 / lg 44），圆角 10px</span></p>
+  </header>
+  <div class="cmp__grid" style="--cols:6">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">主要</span>
+      <div class="cmp__demo"><button class="btn btn--primary">新建工单</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">次要</span>
+      <div class="cmp__demo"><button class="btn btn--secondary">导出</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">幽灵</span>
+      <div class="cmp__demo"><button class="btn btn--ghost">取消</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">危险</span>
+      <div class="cmp__demo"><button class="btn btn--danger">删除</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">禁用</span>
+      <div class="cmp__demo"><button class="btn btn--primary" disabled>不可用</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">加载</span>
+      <div class="cmp__demo"><button class="btn btn--primary btn--loading">提交中</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-size">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">按钮尺寸</h2>
+      <code class="cmp__api">.btn--sm / 默认 / .btn--lg</code>
+    </div>
+    <p class="cmp__desc">按场景选尺寸，不要在同一条操作栏里混用三种。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:3">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">sm · 28px</span>
+      <div class="cmp__demo"><button class="btn btn--primary btn--sm">小按钮</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">default · 36px</span>
+      <div class="cmp__demo"><button class="btn btn--primary">默认按钮</button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">lg · 44px</span>
+      <div class="cmp__demo"><button class="btn btn--primary btn--lg">大按钮</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-input">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">输入框</h2>
+      <code class="cmp__api">.field > .field__label + .input + .field__error</code>
+    </div>
+    <p class="cmp__desc">错误提示显示在字段下方，禁止 alert。 <span class="cmp__note">必填项在 label 后加 <span class="req">*</span></span></p>
+  </header>
+  <div class="cmp__grid" style="--cols:4">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">常态</span>
+      <div class="cmp__demo"><div class="field"><label class="field__label">工单标题<span class="req">*</span></label><input class="input" placeholder="请输入标题"></div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">已填</span>
+      <div class="cmp__demo"><div class="field"><label class="field__label">工单标题</label><input class="input" value="系统升级申请"></div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">错误</span>
+      <div class="cmp__demo"><div class="field has-error"><label class="field__label">工单标题</label><input class="input" aria-invalid="true" value=""><p class="field__error">标题不能为空</p></div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">禁用</span>
+      <div class="cmp__demo"><div class="field"><label class="field__label">工单编号</label><input class="input" value="TK-20261029-001" disabled></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-select">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">选择器</h2>
+      <code class="cmp__api">.select / .textarea</code>
+    </div>
+    <p class="cmp__desc">选项 ≤ 5 个用单选按钮组，≥ 6 个用下拉。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:2">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">下拉</span>
+      <div class="cmp__demo"><div class="field"><label class="field__label">状态</label><select class="select"><option>待处理</option><option>处理中</option><option>已关闭</option></select></div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">多行文本</span>
+      <div class="cmp__demo"><div class="field"><label class="field__label">问题描述</label><textarea class="textarea" placeholder="请描述具体问题"></textarea></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-badge">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">标签 / 徽章</h2>
+      <code class="cmp__api">.badge + --success / --warning / --danger / --info / --brand</code>
+    </div>
+    <p class="cmp__desc">语义色固定，不随主题变化。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:6">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">成功</span>
+      <div class="cmp__demo"><span class="badge badge--success"><i class="dot"></i>已完成</span></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">警告</span>
+      <div class="cmp__demo"><span class="badge badge--warning"><i class="dot"></i>处理中</span></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">危险</span>
+      <div class="cmp__demo"><span class="badge badge--danger"><i class="dot"></i>已驳回</span></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">信息</span>
+      <div class="cmp__demo"><span class="badge badge--info"><i class="dot"></i>草稿</span></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">品牌</span>
+      <div class="cmp__demo"><span class="badge badge--brand">P0</span></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">默认</span>
+      <div class="cmp__demo"><span class="badge">P2</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-table">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">表格</h2>
+      <code class="cmp__api">.table / .table__num</code>
+    </div>
+    <p class="cmp__desc">数字列右对齐并用等宽数字；空态不显示空表格，用 .state 替代。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">正常</span>
+      <div class="cmp__demo"><table class="table"><thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead><tbody>
+<tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+<tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+</tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-state">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">空态 / 错误态</h2>
+      <code class="cmp__api">.state / .state--error</code>
+    </div>
+    <p class="cmp__desc">空态必须有引导文案 + 一个动作按钮。错误态要说明原因 + 给重试路径。 <span class="cmp__note">每页至少实现「正常 + 一个异常」</span></p>
+  </header>
+  <div class="cmp__grid" style="--cols:2">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">空态</span>
+      <div class="cmp__demo"><div class="state"><div class="state__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5 5h14l2 7v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5z"/></svg></div><h3 class="state__title">还没有工单</h3><p class="state__desc">创建第一张工单，开始跟踪处理进度</p><button class="btn btn--primary btn--sm">新建工单</button></div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">错误态</span>
+      <div class="cmp__demo"><div class="state state--error"><div class="state__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg></div><h3 class="state__title">加载失败</h3><p class="state__desc">网络连接异常，请稍后重试</p><button class="btn btn--secondary btn--sm">重新加载</button></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-skeleton">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">骨架屏</h2>
+      <code class="cmp__api">.skeleton</code>
+    </div>
+    <p class="cmp__desc">首次进入有数据的页面时显示，300-500ms 后出数据。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">列表骨架</span>
+      <div class="cmp__demo"><div style="display:grid;gap:10px;width:100%"><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:85%"></div><div class="skeleton" style="width:45%"></div><div class="skeleton" style="width:70%"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-card">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">卡片</h2>
+      <code class="cmp__api">.card / .card--flush / .card__header / .card__body</code>
+    </div>
+    <p class="cmp__desc">卡片是内容容器，不是装饰。不要嵌套超过两层。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:2">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">标准卡片</span>
+      <div class="cmp__demo"><div class="card" style="width:100%"><h3 class="card__title" style="margin-bottom:8px">本月统计</h3><p class="muted" style="margin:0;font-size:13px">共处理 1,284 张工单，平均响应 2.4 小时</p></div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">带头部</span>
+      <div class="cmp__demo"><div class="card card--flush" style="width:100%"><div class="card__header"><h3 class="card__title">最近活动</h3></div><div class="card__body" style="padding:12px 16px"><p class="muted" style="margin:0;font-size:13px">2 分钟前 · 张明 提交了 TK-20261029-003</p></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-tabs">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">标签页</h2>
+      <code class="cmp__api">.tabs / .tab[aria-selected]</code>
+    </div>
+    <p class="cmp__desc">切换不改路由时用 Tabs；改路由用导航。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">三个 Tab</span>
+      <div class="cmp__demo"><div class="tabs" style="width:100%"><button class="tab" aria-selected="true">全部</button><button class="tab" aria-selected="false">待处理</button><button class="tab" aria-selected="false">已关闭</button></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-pagination">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">分页</h2>
+      <code class="cmp__api">.pagination / .page-btn</code>
+    </div>
+    <p class="cmp__desc">少于 20 条不用分页。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">分页条</span>
+      <div class="cmp__demo"><div class="pagination"><button class="page-btn" disabled>‹</button><button class="page-btn" aria-current="page">1</button><button class="page-btn">2</button><button class="page-btn">3</button><button class="page-btn">›</button></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-breadcrumb">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">面包屑</h2>
+      <code class="cmp__api">.breadcrumb</code>
+    </div>
+    <p class="cmp__desc">层级超过 2 层才需要。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">面包屑</span>
+      <div class="cmp__demo"><nav class="breadcrumb"><a href="#">工单</a><span class="breadcrumb__sep">/</span><a href="#">TK-20261029-001</a><span class="breadcrumb__sep">/</span><span aria-current="page">处理记录</span></nav></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-avatar">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">头像</h2>
+      <code class="cmp__api">.avatar / .avatar--sm / .avatar--lg</code>
+    </div>
+    <p class="cmp__desc">无头像图时用姓名首字，不引外部图片。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:3">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">sm</span>
+      <div class="cmp__demo"><div class="avatar avatar--sm">张</div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">默认</span>
+      <div class="cmp__demo"><div class="avatar">李</div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">lg</span>
+      <div class="cmp__demo"><div class="avatar avatar--lg">王</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-form-controls">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">开关 / 勾选</h2>
+      <code class="cmp__api">.switch / .checkbox / .radio</code>
+    </div>
+    <p class="cmp__desc">开关用于立即生效的设置；勾选用于表单提交。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:4">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">开关-关</span>
+      <div class="cmp__demo"><button class="switch" role="switch" aria-checked="false" aria-label="启用通知"></button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">开关-开</span>
+      <div class="cmp__demo"><button class="switch" role="switch" aria-checked="true" aria-label="启用通知"></button></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">勾选</span>
+      <div class="cmp__demo"><label class="row" style="font-size:13px"><input type="checkbox" class="checkbox" checked>记住我的选择</label></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">单选</span>
+      <div class="cmp__demo"><label class="row" style="font-size:13px"><input type="radio" class="radio" name="r1" checked>按天汇总</label></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-alert">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">提示条</h2>
+      <code class="cmp__api">.alert + --info / --success / --warning / --danger</code>
+    </div>
+    <p class="cmp__desc">页内常驻提示。一次性反馈用 Toast。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:3">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">信息</span>
+      <div class="cmp__demo"><div class="alert alert--info" style="width:100%">系统将于今晚 22:00 维护</div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">警告</span>
+      <div class="cmp__demo"><div class="alert alert--warning" style="width:100%">有 3 条工单已超时未处理</div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">危险</span>
+      <div class="cmp__demo"><div class="alert alert--danger" style="width:100%">删除后不可恢复，请谨慎操作</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-toast">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">Toast</h2>
+      <code class="cmp__api">.toast-stack / .toast--success / .toast--danger</code>
+    </div>
+    <p class="cmp__desc">右下角，3 秒消失，同时最多 1 条。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:2">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">成功</span>
+      <div class="cmp__demo"><div class="toast toast--success" style="position:static;animation:none">工单创建成功</div></div>
+    </div>
+    <div class="cmp__cell">
+      <span class="cmp__label">失败</span>
+      <div class="cmp__demo"><div class="toast toast--danger" style="position:static;animation:none">提交失败，请重试</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-steps">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">步骤条</h2>
+      <code class="cmp__api">.steps / .step.is-active / .is-done</code>
+    </div>
+    <p class="cmp__desc">流程 ≥ 3 步才需要。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">三步流程</span>
+      <div class="cmp__demo"><div class="steps"><span class="step is-done"><i class="step__num">✓</i>填信息</span><span class="step__line"></span><span class="step is-active"><i class="step__num">2</i>确认</span><span class="step__line"></span><span class="step"><i class="step__num">3</i>完成</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-progress">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">进度条</h2>
+      <code class="cmp__api">.progress / .progress__bar</code>
+    </div>
+    <p class="cmp__desc">有明确总量的进度用进度条，无总量用骨架屏或 loading。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">45%</span>
+      <div class="cmp__demo"><div class="progress" style="width:100%"><div class="progress__bar" style="width:45%"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-list">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">列表项</h2>
+      <code class="cmp__api">.list / .list-item</code>
+    </div>
+    <p class="cmp__desc">比表格更松散的展示，适合活动流。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">活动流</span>
+      <div class="cmp__demo"><div class="list" style="width:100%"><div class="list-item"><div class="avatar avatar--sm">张</div><div class="grow"><div style="font-size:13px">张明 提交了工单</div><div class="help-text">2 分钟前</div></div><span class="badge badge--warning">待处理</span></div><div class="list-item"><div class="avatar avatar--sm">李</div><div class="grow"><div style="font-size:13px">李华 关闭了工单</div><div class="help-text">18 分钟前</div></div><span class="badge badge--success">已完成</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-toolbar">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">工具栏 / 搜索</h2>
+      <code class="cmp__api">.toolbar / .search</code>
+    </div>
+    <p class="cmp__desc">筛选器和操作按钮统一放工具栏，不要散落。</p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">组合</span>
+      <div class="cmp__demo"><div class="toolbar" style="width:100%"><div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg><input class="input" placeholder="搜索工单编号或标题" style="width:220px"></div><select class="select" style="width:120px"><option>全部状态</option><option>待处理</option></select><span class="toolbar__spacer"></span><button class="btn btn--secondary btn--sm">导出</button><button class="btn btn--primary btn--sm">新建</button></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-drawer">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">抽屉</h2>
+      <code class="cmp__api">.drawer / .drawer-mask / .drawer--open</code>
+    </div>
+    <p class="cmp__desc">详情优先用抽屉（不改路由）。ESC 和点遮罩都要能关。 <span class="cmp__note">右下滑入 320ms，宽 520px</span></p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">打开态预览</span>
+      <div class="cmp__demo"><div style="position:relative;width:100%;height:180px;background:var(--c-surface-2);border-radius:10px;overflow:hidden"><div class="drawer" style="position:absolute;width:200px;transform:none;box-shadow:none;border-left:1px solid var(--c-border)"><div class="drawer__header" style="padding:10px 12px"><h3 class="drawer__title" style="font-size:13px">工单详情</h3><button class="icon-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div><div class="drawer__body" style="padding:12px"><div class="skeleton" style="width:70%;margin-bottom:8px"></div><div class="skeleton" style="width:50%"></div></div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="cmp-modal">
+  <header class="cmp__head">
+    <div class="cmp__title-wrap">
+      <h2 class="cmp__title">弹窗</h2>
+      <code class="cmp__api">.modal-mask / .modal / .is-open</code>
+    </div>
+    <p class="cmp__desc">新建 / 确认用弹窗。必须有 focus trap，ESC 关闭。 <span class="cmp__note">居中 480px，圆角 18px</span></p>
+  </header>
+  <div class="cmp__grid" style="--cols:1">
+    
+    <div class="cmp__cell">
+      <span class="cmp__label">打开态预览</span>
+      <div class="cmp__demo"><div style="width:100%;height:200px;background:var(--c-surface-2);border-radius:10px;display:grid;place-items:center"><div class="modal" style="position:static;max-width:260px;transform:none;box-shadow:var(--shadow-md)"><div class="modal__header" style="padding:14px 14px 8px"><h3 class="modal__title" style="font-size:13px">新建工单</h3><button class="icon-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div><div class="modal__body" style="padding:0 14px 12px;gap:8px"><div class="field"><label class="field__label">标题</label><input class="input" placeholder="请输入"></div></div><div class="modal__footer" style="padding:10px 14px"><button class="btn btn--ghost btn--sm">取消</button><button class="btn btn--primary btn--sm">确定</button></div></div></div></div>
+    </div>
+  </div>
+</section>
+
+    <section class="cmp">
+      <header class="cmp__head">
+        <div class="cmp__title-wrap"><h2 class="cmp__title">设计 token</h2><code class="cmp__api">theme.css</code></div>
+        <p class="cmp__desc">颜色全部来自这些变量，禁止在原型里临场写 hex。</p>
+      </header>
+      <div class="cmp__grid" style="--cols:4">
+        
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-brand</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-brand)"></span><code class="token__val" data-token="--c-brand"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-brand-ink</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-brand-ink)"></span><code class="token__val" data-token="--c-brand-ink"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-brand-soft</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-brand-soft)"></span><code class="token__val" data-token="--c-brand-soft"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-text</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-text)"></span><code class="token__val" data-token="--c-text"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-text-2</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-text-2)"></span><code class="token__val" data-token="--c-text-2"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-text-3</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-text-3)"></span><code class="token__val" data-token="--c-text-3"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-border</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-border)"></span><code class="token__val" data-token="--c-border"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-surface-2</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-surface-2)"></span><code class="token__val" data-token="--c-surface-2"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-success</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-success)"></span><code class="token__val" data-token="--c-success"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-warning</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-warning)"></span><code class="token__val" data-token="--c-warning"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-danger</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-danger)"></span><code class="token__val" data-token="--c-danger"></code></div>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__label">--c-info</span>
+          <div class="token"><span class="token__swatch" style="background:var(--c-info)"></span><code class="token__val" data-token="--c-info"></code></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ---- 主题切换 ---- */
+const root = document.documentElement;
+const pick = document.getElementById('theme-pick');
+const dark = document.getElementById('dark-pick');
+const rel = document.getElementById('rel-pick');
+const cur = document.getElementById('cur-theme');
+
+const sync = () => {
+  root.dataset.theme = pick.value;
+  if (dark.checked) root.dataset.dark = '1'; else delete root.dataset.dark;
+  if (rel.checked) root.style.setProperty('--x-link', '1');
+  cur.textContent = pick.value + (dark.checked ? ' · 暗' : '');
+  renderTokens();
+  saveState();
+};
+pick.addEventListener('change', sync);
+dark.addEventListener('change', sync);
+
+/* ---- token 实时显示 hex ---- */
+const renderTokens = () => {
+  document.querySelectorAll('[data-token]').forEach(el => {
+    el.textContent = getComputedStyle(root).getPropertyValue(el.dataset.token).trim();
+  });
+};
+
+/* ---- 链接行为：真实模式下不跳转（避免 demo 里的 # 到处跑） ---- */
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href^="#"]');
+  if (a && !rel.checked) { e.preventDefault(); }
+});
+
+/* ---- 状态记忆 ---- */
+const saveState = () => {
+  try { localStorage.setItem('req2proto-cmp', JSON.stringify({ t: pick.value, d: dark.checked, r: rel.checked })); } catch {}
+};
+const loadState = () => {
+  try {
+    const s = JSON.parse(localStorage.getItem('req2proto-cmp') || 'null');
+    if (s) { pick.value = s.t || 'saas'; dark.checked = !!s.d; rel.checked = s.r !== false; }
+  } catch {}
+};
+
+loadState();
+sync();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+node_modules/
+*.log
+.DS_Store
+.env
+.env.*
+
+# 生成物：out/ 是用户自己的产出，不随仓库分发
+out/
+
+# 编辑器中转
+.idea/
+.vscode/
+*.swp

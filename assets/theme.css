@@ -1,0 +1,209 @@
+/* ============================================================
+   theme.css — 设计 token 单一来源
+   用法：<html data-theme="medical"> 切换行业主题
+   不写 hex 在别处；所有组件只引用 var(--*)
+   ============================================================ */
+
+/* ---------- 1. 中性底座（所有主题共用） ---------- */
+:root {
+  /* 背景层级：页面 → 卡片 → 悬浮 */
+  --c-bg: #f7f8fa;
+  --c-surface: #ffffff;
+  --c-surface-2: #f2f4f7;
+  --c-surface-3: #e8ebf0;
+
+  /* 描边 */
+  --c-border: #e4e8ee;
+  --c-border-strong: #cfd6e0;
+
+  /* 文字层级：主 → 次 → 弱 */
+  --c-text: #0f172a;
+  --c-text-2: #4a5568;
+  --c-text-3: #8a94a6;
+  --c-text-inverse: #ffffff;
+
+  /* 语义色（状态不可用品牌色替代） */
+  --c-success: #0f766e;
+  --c-success-soft: #e6f7f5;
+  --c-warning: #b45309;
+  --c-warning-soft: #fef3e2;
+  --c-danger: #b91c1c;
+  --c-danger-soft: #feecec;
+  --c-info: #0369a1;
+  --c-info-soft: #e6f2fb;
+
+  /* 圆角 */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-full: 999px;
+
+  /* 间距（4 的倍数，禁止碎数） */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* 字号阶梯（5 档，禁止跳档） */
+  --f-xs: 12px;
+  --f-sm: 13px;
+  --f-md: 14px;
+  --f-lg: 16px;
+  --f-xl: 20px;
+  --f-2xl: 28px;
+  --f-3xl: 36px;
+
+  /* 行高 */
+  --lh-tight: 1.3;
+  --lh-normal: 1.6;
+
+  /* 字重 */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+
+  /* 阴影（一层柔和，不用硬投影） */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, .12);
+  --shadow-xl: 0 24px 56px rgba(15, 23, 42, .18);
+
+  /* 字体栈（系统字体，零外部请求） */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* 动效 */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --dur-fast: 120ms;
+  --dur-normal: 200ms;
+  --dur-slow: 320ms;
+
+  /* 布局 */
+  --sidebar-w: 232px;
+  --header-h: 56px;
+  --content-max: 1280px;
+}
+
+/* ---------- 2. 行业主题（只覆盖品牌色系，中性底座不动） ---------- */
+
+/* 默认：SaaS / 工具型 — 靛蓝，科技感 */
+:root,
+[data-theme="saas"] {
+  --c-brand: #4f46e5;
+  --c-brand-hover: #3730a3;
+  --c-brand-ink: #4f46e5;
+  --c-brand-soft: #eef0ff;
+  --c-brand-line: #b9b8f9;
+  --c-focus: rgba(79, 70, 229, .32);
+}
+
+/* 医疗健康 — 青绿，专业不刺眼；避开"环保绿"的廉价感 */
+[data-theme="medical"] {
+  --c-brand: #0f766e;
+  --c-brand-hover: #115e59;
+  --c-brand-ink: #0a8279;
+  --c-brand-soft: #e6f7f5;
+  --c-brand-line: #99ddd6;
+  --c-focus: rgba(15, 118, 110, .32);
+}
+
+/* 政企 / 政务 — 正蓝，权威可信；国内政企系统的事实标准色 */
+[data-theme="gov"] {
+  --c-brand: #165dff;
+  --c-brand-hover: #0b4fd1;
+  --c-brand-ink: #165dff;
+  --c-brand-soft: #e8f1ff;
+  --c-brand-line: #a8c8ff;
+  --c-focus: rgba(22, 93, 255, .32);
+}
+
+/* 金融 / 银行 — 深藏青，稳健；降饱和避免"促销感" */
+[data-theme="finance"] {
+  --c-brand: #123a6b;
+  --c-brand-hover: #0d2b50;
+  --c-brand-ink: #123a6b;
+  --c-brand-soft: #e9eff7;
+  --c-brand-line: #a9bdd6;
+  --c-focus: rgba(18, 58, 107, .32);
+}
+
+/* 教育 — 墨橙，活力但不喧闹；和 K12 满屏蓝做区分 */
+[data-theme="education"] {
+  --c-brand: #c2410c;
+  --c-brand-hover: #9a3412;
+  --c-brand-ink: #c2410c;
+  --c-brand-soft: #fff1e6;
+  --c-brand-line: #ffc193;
+  --c-focus: rgba(194, 65, 12, .32);
+}
+
+/* 电商 / 零售 — 玫红，促销紧迫感；比大红更现代 */
+[data-theme="ecommerce"] {
+  --c-brand: #be123c;
+  --c-brand-hover: #9f1239;
+  --c-brand-ink: #e11d48;
+  --c-brand-soft: #ffe9ee;
+  --c-brand-line: #fda4b8;
+  --c-focus: rgba(190, 18, 60, .32);
+}
+
+/* 数据 / 分析 — 深青，理性冷静；适合密集表格不疲劳 */
+[data-theme="data"] {
+  --c-brand: #0e7490;
+  --c-brand-hover: #155e75;
+  --c-brand-ink: #0e7490;
+  --c-brand-soft: #e0f7fc;
+  --c-brand-line: #7dd3e8;
+  --c-focus: rgba(14, 116, 144, .32);
+}
+
+/* 生活服务 — 陶土橙，亲和温暖；降饱和避开外卖平台的荧光橙 */
+[data-theme="life"] {
+  --c-brand: #b04a26;
+  --c-brand-hover: #8f3c1f;
+  --c-brand-ink: #c0502a;
+  --c-brand-soft: #fff0ea;
+  --c-brand-line: #ffb59b;
+  --c-focus: rgba(176, 74, 38, .32);
+}
+
+/* ---------- 3. 暗色模式（可选，加 data-dark="1"） ---------- */
+[data-dark="1"] {
+  --c-bg: #0b1220;
+  --c-surface: #131b2b;
+  --c-surface-2: #1b2437;
+  --c-surface-3: #232e44;
+  --c-border: #263149;
+  --c-border-strong: #37445f;
+  --c-text: #e8edf5;
+  --c-text-2: #a3aec2;
+  --c-text-3: #6f7d94;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, .5);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, .6);
+}
+
+/* 暗色下品牌色提亮，保证在深底上可读 */
+[data-dark="1"][data-theme="saas"]      { --c-brand: #818cf8; --c-brand-hover: #a5b4fc; --c-brand-ink: #a5b4fc; --c-brand-soft: #1e1b4b; --c-brand-line: #4338ca; }
+[data-dark="1"][data-theme="medical"]   { --c-brand: #2dd4bf; --c-brand-hover: #5eead4; --c-brand-ink: #5eead4; --c-brand-soft: #0f2e2b; --c-brand-line: #115e59; }
+[data-dark="1"][data-theme="gov"]       { --c-brand: #4d87ff; --c-brand-hover: #7aa6ff; --c-brand-ink: #7aa6ff; --c-brand-soft: #0f1f3d; --c-brand-line: #1e40af; }
+[data-dark="1"][data-theme="finance"]   { --c-brand: #6b93c9; --c-brand-hover: #8fb0dd; --c-brand-ink: #8fb0dd; --c-brand-soft: #14243b; --c-brand-line: #2c4a72; }
+[data-dark="1"][data-theme="education"] { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a08; --c-brand-line: #9a3412; }
+[data-dark="1"][data-theme="ecommerce"] { --c-brand: #fb7185; --c-brand-hover: #fda4af; --c-brand-ink: #fda4af; --c-brand-soft: #3b0a1a; --c-brand-line: #9f1239; }
+[data-dark="1"][data-theme="data"]      { --c-brand: #22d3ee; --c-brand-hover: #67e8f9; --c-brand-ink: #67e8f9; --c-brand-soft: #0a2a33; --c-brand-line: #155e75; }
+[data-dark="1"][data-theme="life"]      { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a0d; --c-brand-line: #8f3c1f; }
+
+/* ---------- 4. 无障碍降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

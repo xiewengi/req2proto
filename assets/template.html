@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="{{THEME}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{PRODUCT}} · 原型</title>
+<!--
+  由 req2proto 生成。占位符（写作「双花括号 + 名字」，此处不写全避免被替换）：
+  THEME 主题 id（saas/medical/gov/finance/education/ecommerce/data/life）
+  PRODUCT 产品名   PRODUCT_INITIAL 产品首字   HOME 首页路由
+  REQ_MAP 功能清单 JSON   MOCK_DATA 模拟数据   VIEWS 视图函数   ROUTES 路由表
+  THEME_CSS / SHARED_CSS / CUSTOM_CSS 三段样式
+  约束：单文件、零外部请求、hash 路由、data-req 追溯
+-->
+<style>
+/* ============ theme.css ============ */
+{{THEME_CSS}}
+
+/* ============ shared.css ============ */
+{{SHARED_CSS}}
+
+/* ============ 本原型特有样式 ============ */
+{{CUSTOM_CSS}}
+</style>
+</head>
+<body>
+
+<!-- ============ 应用外壳 ============ -->
+<div class="app">
+  <aside class="sidebar">
+    <a class="sidebar__brand" href="#/{{HOME}}" data-no-req>
+      <span class="sidebar__brand-mark">{{PRODUCT_INITIAL}}</span>
+      <span>{{PRODUCT}}</span>
+    </a>
+    <nav id="nav" aria-label="主导航"></nav>
+    <div class="grow"></div>
+    <button class="nav-item" id="review-btn" data-no-req style="color:var(--c-text-3);font-size:12px">
+      评审模式 <span class="badge" style="margin-left:auto">Shift+?</span>
+    </button>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 class="topbar__title" id="page-title">加载中</h1>
+      <div class="topbar__spacer"></div>
+      <div id="topbar-actions"></div>
+    </header>
+    <div class="content">
+      <div class="content__inner" id="view"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 全局容器 ============ -->
+<div class="drawer-mask" id="drawer-mask"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true"></aside>
+
+<div class="modal-mask" id="modal-mask">
+  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+</div>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<!-- ============ 评审侧栏 ============ -->
+<aside class="review-panel" id="review-panel" aria-hidden="true">
+  <header class="review-panel__head">
+    <h2 style="font-size:var(--f-lg);margin:0">需求覆盖</h2>
+    <button class="icon-btn" id="review-close" aria-label="关闭" data-no-req>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </header>
+  <div class="review-panel__body" id="review-body"></div>
+</aside>
+
+<!-- ============ 功能清单（追溯基线，勿改结构） ============ -->
+<script type="application/json" id="req-map">
+{{REQ_MAP}}
+</script>
+
+<script>
+/* ============================================================
+   mock 数据 —— 全部前端假数据，有真实业务语义
+   ============================================================ */
+const DB = {{MOCK_DATA}};
+
+/* ============================================================
+   视图（每个路由一个 render 函数，返回 DOM 节点）
+   ============================================================ */
+{{VIEWS}}
+
+/* ============================================================
+   路由
+   ============================================================ */
+const ROUTES = {{ROUTES}};
+
+const parseHash = () => {
+  const raw = (location.hash || '').replace(/^#/, '') || '/';
+  const [path, query] = raw.split('?');
+  const params = Object.fromEntries(new URLSearchParams(query || ''));
+  return { path: path || '/', params };
+};
+
+const matchRoute = (path) => {
+  for (const r of ROUTES) {
+    const rSeg = r.path.split('/').filter(Boolean);
+    const pSeg = path.split('/').filter(Boolean);
+    if (rSeg.length !== pSeg.length) continue;
+    const args = {};
+    let ok = true;
+    for (let i = 0; i < rSeg.length; i++) {
+      if (rSeg[i].startsWith(':')) args[rSeg[i].slice(1)] = decodeURIComponent(pSeg[i]);
+      else if (rSeg[i] !== pSeg[i]) { ok = false; break; }
+    }
+    if (ok) return { route: r, args };
+  }
+  return null;
+};
+
+/* ============================================================
+   状态
+   ============================================================ */
+const state = {
+  loading: false,
+  listState: 'normal',   // normal | empty | error
+};
+
+/* 从 ?state= 读状态，方便演示时直接甩异常态链接 */
+const readState = (params) => {
+  if (params.state === 'empty' || params.state === 'error') return params.state;
+  return 'normal';
+};
+
+/* ============================================================
+   渲染
+   ============================================================ */
+const $ = (sel, root = document) => root.querySelector(sel);
+const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+const renderNav = (active) => {
+  const nav = $('#nav');
+  nav.innerHTML = `
+    <div class="nav-group">工作台</div>
+    <!-- NAV_ITEMS -->
+  `;
+  nav.querySelectorAll('[data-nav]').forEach(a => {
+    if (active.startsWith(a.dataset.nav)) a.setAttribute('aria-current', 'page');
+  });
+};
+
+const render = () => {
+  const { path, params } = parseHash();
+  const matched = matchRoute(path);
+  state.listState = readState(params);
+
+  if (!matched) {
+    $('#page-title').textContent = '页面不存在';
+    $('#view').innerHTML = `
+      <div class="state state--error">
+        <div class="state__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+        </div>
+        <h3 class="state__title">页面不存在</h3>
+        <p class="state__desc">地址 ${path} 没有对应的页面</p>
+        <a class="btn btn--secondary btn--sm" href="#/{{HOME}}" data-no-req>返回首页</a>
+      </div>`;
+    $('#topbar-actions').innerHTML = '';
+    renderNav('/none');
+    return;
+  }
+
+  const { route, args } = matched;
+  $('#page-title').textContent = typeof route.title === 'function' ? route.title(args) : route.title;
+  renderNav(route.nav || route.path);
+
+  const view = $('#view');
+  view.innerHTML = '';
+  const node = route.render({ args, params, state });
+  if (node) view.appendChild(node);
+  $('#topbar-actions').innerHTML = route.actions ? route.actions({ args, params }) : '';
+
+  window.scrollTo(0, 0);
+};
+
+/* ============================================================
+   交互原语
+   ============================================================ */
+const drawerEl = $('#drawer');
+const maskEl = $('#drawer-mask');
+
+const openDrawer = (html) => {
+  drawerEl.innerHTML = html;
+  drawerEl.classList.add('is-open');
+  drawerEl.setAttribute('aria-hidden', 'false');
+  maskEl.classList.add('is-open');
+  drawerEl._lastFocus = document.activeElement;
+  const first = drawerEl.querySelector('button, [href], input, select, textarea');
+  if (first) first.focus();
+};
+
+const closeDrawer = () => {
+  drawerEl.classList.remove('is-open');
+  drawerEl.setAttribute('aria-hidden', 'true');
+  maskEl.classList.remove('is-open');
+  if (drawerEl._lastFocus) drawerEl._lastFocus.focus();
+};
+
+const modalEl = $('#modal');
+const modalMask = $('#modal-mask');
+
+const openModal = (html) => {
+  modalEl.innerHTML = html;
+  modalMask.classList.add('is-open');
+  modalEl._lastFocus = document.activeElement;
+  const first = modalEl.querySelector('input, select, textarea, button');
+  if (first) first.focus();
+};
+
+const closeModal = () => {
+  modalMask.classList.remove('is-open');
+  if (modalEl._lastFocus) modalEl._lastFocus.focus();
+};
+
+const toastStack = $('#toast-stack');
+const toast = (msg, type = 'default') => {
+  toastStack.innerHTML = '';
+  const el = h(`<div class="toast ${type === 'success' ? 'toast--success' : type === 'danger' ? 'toast--danger' : ''}">${msg}</div>`);
+  toastStack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('is-leaving');
+    setTimeout(() => el.remove(), 220);
+  }, 3000);
+};
+
+/* ESC 关闭 + 点遮罩关闭 */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (modalMask.classList.contains('is-open')) closeModal();
+    else if (drawerEl.classList.contains('is-open')) closeDrawer();
+    else if (reviewPanel.classList.contains('is-open')) toggleReview(false);
+  }
+  if (e.shiftKey && e.key === '?') toggleReview();
+});
+
+maskEl.addEventListener('click', closeDrawer);
+modalMask.addEventListener('click', (e) => { if (e.target === modalMask) closeModal(); });
+
+/* ============================================================
+   评审模式
+   ============================================================ */
+const reviewPanel = $('#review-panel');
+let reqMap = [];
+try { reqMap = JSON.parse($('#req-map').textContent); } catch { reqMap = []; }
+
+const toggleReview = (force) => {
+  const open = force !== undefined ? force : !reviewPanel.classList.contains('is-open');
+  reviewPanel.classList.toggle('is-open', open);
+  reviewPanel.setAttribute('aria-hidden', String(!open));
+  if (open) renderReview();
+};
+
+/* 评审要覆盖所有路由，不能只看当前页 —— 遍历每个路由各渲染一次统计 */
+const collectHits = () => {
+  const hits = {};
+  const note = (root) => {
+    root.querySelectorAll('[data-req]').forEach(el => {
+      const id = el.dataset.req;
+      hits[id] = (hits[id] || 0) + 1;
+    });
+  };
+
+  // 当前页 DOM（含抽屉 / 弹窗里已挂载的元素）
+  note(document);
+
+  // 其它路由：临时渲染到离屏容器，统计完丢弃
+  const savedHash = location.hash;
+  const sandbox = document.createElement('div');
+  sandbox.style.cssText = 'position:absolute;left:-99999px;top:0;width:1280px;';
+  document.body.appendChild(sandbox);
+
+  for (const r of ROUTES) {
+    try {
+      // 路由可声明 sampleArgs 提供真实样例参数；没声明就用占位串
+      const sampleArgs = { ...(r.sampleArgs || {}) };
+      r.path.split('/').filter(Boolean).forEach(seg => {
+        const key = seg.startsWith(':') ? seg.slice(1) : null;
+        if (key && sampleArgs[key] === undefined) sampleArgs[key] = '__sample__';
+      });
+      // 每个路由都扫一遍全部状态变体，确保空态/错误态/骨架屏里的 data-req 也被计入
+      const baseParams = { ...(r.sampleParams || {}) };
+      for (const st of ['normal', 'loading', 'empty', 'error']) {
+        try {
+          const node = r.render({ args: sampleArgs, params: { ...baseParams, state: st }, state });
+          if (node) sandbox.appendChild(node);
+        } catch { /* 该状态不支持就跳过 */ }
+      }
+    } catch { /* 某路由渲染失败不影响其它 */ }
+  }
+  note(sandbox);
+  sandbox.remove();
+
+  // 只存在于弹窗 / 抽屉里的交互，路由渲染扫不到。
+  // 模块可用 PROBES 声明「点开它，再扫一遍」：
+  //   const PROBES = [() => openAssignModal(), () => openProgressModal()];
+  // 探测后立刻关掉，避免影响用户当前视图。
+  if (typeof PROBES !== 'undefined') {
+    for (const probe of PROBES) {
+      try {
+        probe();
+        // 弹窗/抽屉可能是多个容器（.drawer 常驻空壳），要逐个扫，不能只取第一个
+        document.querySelectorAll('.modal, .drawer, [data-layer], dialog[open]').forEach(note);
+        if (typeof closeModal === 'function') closeModal();
+        if (typeof closeDrawer === 'function') closeDrawer();
+      } catch { /* 单个探测失败不影响统计 */ }
+    }
+  }
+
+  location.hash = savedHash;
+  return hits;
+};
+
+const renderReview = () => {
+  const hits = collectHits();
+  const known = new Set(reqMap.map(r => r.id));
+  const orphans = [...new Set(Object.keys(hits).filter(k => !known.has(k)))];
+
+  const rows = reqMap.map(r => {
+    const n = hits[r.id] || 0;
+    const cls = n > 0 ? 'ok' : (r.pri === 'P2' ? 'warn' : 'bad');
+    const icon = n > 0 ? '✓' : (r.pri === 'P2' ? '!' : '✕');
+    return `<div class="review-row review-row--${cls}" title="${r.src || ''}">
+      <span class="review-row__icon">${icon}</span>
+      <span class="review-row__id">${r.id}</span>
+      <span class="review-row__name">${r.name}</span>
+      <span class="review-row__meta">${r.pri}${n ? ' · ' + n : ''}</span>
+    </div>`;
+  }).join('');
+
+  const orphanRows = orphans.length
+    ? `<div class="review-sep">原型里多出来的</div>` + orphans.map(id =>
+        `<div class="review-row review-row--info"><span class="review-row__icon">?</span><span class="review-row__id">${id}</span><span class="review-row__name">需求清单里没有</span></div>`
+      ).join('')
+    : '';
+
+  const okCount = reqMap.filter(r => hits[r.id]).length;
+  $('#review-body').innerHTML = `
+    <div class="review-summary">${okCount}/${reqMap.length} 条需求已实现</div>
+    ${rows}
+    ${orphanRows}
+  `;
+};
+
+$('#review-btn').addEventListener('click', () => toggleReview());
+$('#review-close').addEventListener('click', () => toggleReview(false));
+
+/* ============================================================
+   启动
+   ============================================================ */
+window.addEventListener('hashchange', render);
+if (!location.hash) location.hash = '#/{{HOME}}';
+render();
+</script>
+</body>
+</html>

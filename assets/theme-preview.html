@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>req2proto · 行业主题预览</title>
+<style>
+/* ============================================================
+   theme.css — 设计 token 单一来源
+   用法：<html data-theme="medical"> 切换行业主题
+   不写 hex 在别处；所有组件只引用 var(--*)
+   ============================================================ */
+
+/* ---------- 1. 中性底座（所有主题共用） ---------- */
+:root {
+  /* 背景层级：页面 → 卡片 → 悬浮 */
+  --c-bg: #f7f8fa;
+  --c-surface: #ffffff;
+  --c-surface-2: #f2f4f7;
+  --c-surface-3: #e8ebf0;
+
+  /* 描边 */
+  --c-border: #e4e8ee;
+  --c-border-strong: #cfd6e0;
+
+  /* 文字层级：主 → 次 → 弱 */
+  --c-text: #0f172a;
+  --c-text-2: #4a5568;
+  --c-text-3: #8a94a6;
+  --c-text-inverse: #ffffff;
+
+  /* 语义色（状态不可用品牌色替代） */
+  --c-success: #0f766e;
+  --c-success-soft: #e6f7f5;
+  --c-warning: #b45309;
+  --c-warning-soft: #fef3e2;
+  --c-danger: #b91c1c;
+  --c-danger-soft: #feecec;
+  --c-info: #0369a1;
+  --c-info-soft: #e6f2fb;
+
+  /* 圆角 */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-full: 999px;
+
+  /* 间距（4 的倍数，禁止碎数） */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* 字号阶梯（5 档，禁止跳档） */
+  --f-xs: 12px;
+  --f-sm: 13px;
+  --f-md: 14px;
+  --f-lg: 16px;
+  --f-xl: 20px;
+  --f-2xl: 28px;
+  --f-3xl: 36px;
+
+  /* 行高 */
+  --lh-tight: 1.3;
+  --lh-normal: 1.6;
+
+  /* 字重 */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+
+  /* 阴影（一层柔和，不用硬投影） */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, .12);
+  --shadow-xl: 0 24px 56px rgba(15, 23, 42, .18);
+
+  /* 字体栈（系统字体，零外部请求） */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* 动效 */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --dur-fast: 120ms;
+  --dur-normal: 200ms;
+  --dur-slow: 320ms;
+
+  /* 布局 */
+  --sidebar-w: 232px;
+  --header-h: 56px;
+  --content-max: 1280px;
+}
+
+/* ---------- 2. 行业主题（只覆盖品牌色系，中性底座不动） ---------- */
+
+/* 默认：SaaS / 工具型 — 靛蓝，科技感 */
+:root,
+[data-theme="saas"] {
+  --c-brand: #4f46e5;
+  --c-brand-hover: #3730a3;
+  --c-brand-ink: #4f46e5;
+  --c-brand-soft: #eef0ff;
+  --c-brand-line: #b9b8f9;
+  --c-focus: rgba(79, 70, 229, .32);
+}
+
+/* 医疗健康 — 青绿，专业不刺眼；避开"环保绿"的廉价感 */
+[data-theme="medical"] {
+  --c-brand: #0f766e;
+  --c-brand-hover: #115e59;
+  --c-brand-ink: #0a8279;
+  --c-brand-soft: #e6f7f5;
+  --c-brand-line: #99ddd6;
+  --c-focus: rgba(15, 118, 110, .32);
+}
+
+/* 政企 / 政务 — 正蓝，权威可信；国内政企系统的事实标准色 */
+[data-theme="gov"] {
+  --c-brand: #165dff;
+  --c-brand-hover: #0b4fd1;
+  --c-brand-ink: #165dff;
+  --c-brand-soft: #e8f1ff;
+  --c-brand-line: #a8c8ff;
+  --c-focus: rgba(22, 93, 255, .32);
+}
+
+/* 金融 / 银行 — 深藏青，稳健；降饱和避免"促销感" */
+[data-theme="finance"] {
+  --c-brand: #123a6b;
+  --c-brand-hover: #0d2b50;
+  --c-brand-ink: #123a6b;
+  --c-brand-soft: #e9eff7;
+  --c-brand-line: #a9bdd6;
+  --c-focus: rgba(18, 58, 107, .32);
+}
+
+/* 教育 — 墨橙，活力但不喧闹；和 K12 满屏蓝做区分 */
+[data-theme="education"] {
+  --c-brand: #c2410c;
+  --c-brand-hover: #9a3412;
+  --c-brand-ink: #c2410c;
+  --c-brand-soft: #fff1e6;
+  --c-brand-line: #ffc193;
+  --c-focus: rgba(194, 65, 12, .32);
+}
+
+/* 电商 / 零售 — 玫红，促销紧迫感；比大红更现代 */
+[data-theme="ecommerce"] {
+  --c-brand: #be123c;
+  --c-brand-hover: #9f1239;
+  --c-brand-ink: #e11d48;
+  --c-brand-soft: #ffe9ee;
+  --c-brand-line: #fda4b8;
+  --c-focus: rgba(190, 18, 60, .32);
+}
+
+/* 数据 / 分析 — 深青，理性冷静；适合密集表格不疲劳 */
+[data-theme="data"] {
+  --c-brand: #0e7490;
+  --c-brand-hover: #155e75;
+  --c-brand-ink: #0e7490;
+  --c-brand-soft: #e0f7fc;
+  --c-brand-line: #7dd3e8;
+  --c-focus: rgba(14, 116, 144, .32);
+}
+
+/* 生活服务 — 陶土橙，亲和温暖；降饱和避开外卖平台的荧光橙 */
+[data-theme="life"] {
+  --c-brand: #b04a26;
+  --c-brand-hover: #8f3c1f;
+  --c-brand-ink: #c0502a;
+  --c-brand-soft: #fff0ea;
+  --c-brand-line: #ffb59b;
+  --c-focus: rgba(176, 74, 38, .32);
+}
+
+/* ---------- 3. 暗色模式（可选，加 data-dark="1"） ---------- */
+[data-dark="1"] {
+  --c-bg: #0b1220;
+  --c-surface: #131b2b;
+  --c-surface-2: #1b2437;
+  --c-surface-3: #232e44;
+  --c-border: #263149;
+  --c-border-strong: #37445f;
+  --c-text: #e8edf5;
+  --c-text-2: #a3aec2;
+  --c-text-3: #6f7d94;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, .5);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, .6);
+}
+
+/* 暗色下品牌色提亮，保证在深底上可读 */
+[data-dark="1"][data-theme="saas"]      { --c-brand: #818cf8; --c-brand-hover: #a5b4fc; --c-brand-ink: #a5b4fc; --c-brand-soft: #1e1b4b; --c-brand-line: #4338ca; }
+[data-dark="1"][data-theme="medical"]   { --c-brand: #2dd4bf; --c-brand-hover: #5eead4; --c-brand-ink: #5eead4; --c-brand-soft: #0f2e2b; --c-brand-line: #115e59; }
+[data-dark="1"][data-theme="gov"]       { --c-brand: #4d87ff; --c-brand-hover: #7aa6ff; --c-brand-ink: #7aa6ff; --c-brand-soft: #0f1f3d; --c-brand-line: #1e40af; }
+[data-dark="1"][data-theme="finance"]   { --c-brand: #6b93c9; --c-brand-hover: #8fb0dd; --c-brand-ink: #8fb0dd; --c-brand-soft: #14243b; --c-brand-line: #2c4a72; }
+[data-dark="1"][data-theme="education"] { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a08; --c-brand-line: #9a3412; }
+[data-dark="1"][data-theme="ecommerce"] { --c-brand: #fb7185; --c-brand-hover: #fda4af; --c-brand-ink: #fda4af; --c-brand-soft: #3b0a1a; --c-brand-line: #9f1239; }
+[data-dark="1"][data-theme="data"]      { --c-brand: #22d3ee; --c-brand-hover: #67e8f9; --c-brand-ink: #67e8f9; --c-brand-soft: #0a2a33; --c-brand-line: #155e75; }
+[data-dark="1"][data-theme="life"]      { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a0d; --c-brand-line: #8f3c1f; }
+
+/* ---------- 4. 无障碍降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+</style>
+<style>
+/* ============================================================
+   shared.css — 组件骨架
+   只引用 var(--*)，不写死任何颜色/尺寸
+   依赖 theme.css，必须在其后引入
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--f-md);
+  line-height: var(--lh-normal);
+  color: var(--c-text);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 布局骨架 ---------- */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex: 0 0 var(--sidebar-w);
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-4) var(--s-3);
+  gap: var(--s-1);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-4);
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.sidebar__brand-mark {
+  width: 28px; height: 28px;
+  border-radius: var(--r-md);
+  background: var(--c-brand);
+  color: var(--c-text-inverse);
+  display: grid; place-items: center;
+  font-size: var(--f-md);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--c-text-2);
+  font-size: var(--f-md);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.nav-item:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.nav-item[aria-current="page"],
+.nav-item.is-active {
+  background: var(--c-brand-soft);
+  color: var(--c-brand-ink);
+  font-weight: var(--fw-medium);
+}
+
+.nav-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+.nav-group {
+  padding: var(--s-4) var(--s-3) var(--s-1);
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  font-weight: var(--fw-medium);
+  letter-spacing: .04em;
+}
+
+.main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.topbar {
+  height: var(--header-h);
+  flex: 0 0 var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-5);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.topbar__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.topbar__spacer { flex: 1 1 auto; }
+
+.content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-5);
+}
+
+.content__inner { max-width: var(--content-max); margin: 0 auto; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: var(--f-md);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--c-focus);
+}
+
+.btn--primary {
+  background: var(--c-brand);
+  color: var(--c-text-inverse);
+}
+.btn--primary:hover { background: var(--c-brand-hover); }
+
+.btn--secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-color: var(--c-border-strong);
+}
+.btn--secondary:hover { background: var(--c-surface-2); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--c-text-2);
+}
+.btn--ghost:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.btn--danger {
+  background: var(--c-danger);
+  color: var(--c-text-inverse);
+}
+
+.btn--sm { height: 28px; padding: 0 var(--s-3); font-size: var(--f-sm); }
+.btn--lg { height: 44px; padding: 0 var(--s-5); font-size: var(--f-lg); }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn--loading { position: relative; color: transparent !important; }
+.btn--loading::after {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--c-text-inverse);
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+
+.card--flush { padding: 0; overflow: hidden; }
+
+.card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.card__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.card__body { padding: var(--s-5); }
+
+/* ---------- 表格 ---------- */
+.table { width: 100%; border-collapse: collapse; font-size: var(--f-md); }
+
+.table th {
+  text-align: left;
+  font-weight: var(--fw-medium);
+  font-size: var(--f-sm);
+  color: var(--c-text-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+  vertical-align: middle;
+}
+
+.table tbody tr { transition: background var(--dur-fast) var(--ease); }
+.table tbody tr:hover { background: var(--c-surface-2); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table__num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 标签 / 徽章 ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 22px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  font-size: var(--f-xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+}
+
+.badge--success { background: var(--c-success-soft); color: var(--c-success); }
+.badge--warning { background: var(--c-warning-soft); color: var(--c-warning); }
+.badge--danger  { background: var(--c-danger-soft);  color: var(--c-danger); }
+.badge--info    { background: var(--c-info-soft);    color: var(--c-info); }
+.badge--brand   { background: var(--c-brand-soft);   color: var(--c-brand-ink); }
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+/* ---------- 表单 ---------- */
+.field { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.field__label {
+  font-size: var(--f-sm);
+  font-weight: var(--fw-medium);
+  color: var(--c-text-2);
+}
+
+.field__label .req { color: var(--c-danger); margin-left: 2px; }
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: var(--f-md);
+  color: var(--c-text);
+  background: var(--c-surface);
+  transition: border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+
+.input::placeholder, .textarea::placeholder { color: var(--c-text-3); }
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px var(--c-focus);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--c-danger);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, .16);
+}
+
+.field__error {
+  font-size: var(--f-xs);
+  color: var(--c-danger);
+  display: none;
+}
+
+.field.has-error .field__error { display: block; }
+
+.textarea { min-height: 88px; resize: vertical; }
+
+/* ---------- 空态 / 错误态 / 加载态 ---------- */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-8) var(--s-5);
+  text-align: center;
+}
+
+.state__icon {
+  width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+}
+
+.state__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.state__desc {
+  font-size: var(--f-md);
+  color: var(--c-text-2);
+  margin: 0;
+  max-width: 420px;
+}
+
+.state--error .state__icon { background: var(--c-danger-soft); color: var(--c-danger); }
+
+/* 骨架屏 */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--c-surface-2) 0%,
+    var(--c-surface-3) 50%,
+    var(--c-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--r-sm);
+  height: 14px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- 抽屉 ---------- */
+.drawer-mask {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 40;
+}
+
+.drawer-mask.is-open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(520px, 92vw);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xl);
+  transform: translateX(100%);
+  transition: transform var(--dur-normal) var(--ease);
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer.is-open { transform: translateX(0); }
+
+.drawer__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.drawer__title { font-size: var(--f-lg); font-weight: var(--fw-bold); margin: 0; flex: 1 1 auto; }
+.drawer__body { flex: 1 1 auto; overflow-y: auto; padding: var(--s-5); }
+.drawer__footer {
+  display: flex; justify-content: flex-end; gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--c-border);
+}
+
+/* ---------- 弹窗 ---------- */
+.modal-mask {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .38);
+  display: grid; place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 50;
+  padding: var(--s-5);
+}
+
+.modal-mask.is-open { opacity: 1; pointer-events: auto; }
+
+.modal {
+  width: min(480px, 100%);
+  background: var(--c-surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl);
+  transform: scale(.96) translateY(8px);
+  transition: transform var(--dur-normal) var(--ease);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-mask.is-open .modal { transform: scale(1) translateY(0); }
+
+.modal__header {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-5) var(--s-5) var(--s-4);
+}
+
+.modal__title { font-size: var(--f-lg); font-weight: var(--fw-bold); margin: 0; flex: 1 1 auto; }
+.modal__body { padding: 0 var(--s-5) var(--s-5); overflow-y: auto; display: grid; gap: var(--s-4); }
+.modal__footer {
+  display: flex; justify-content: flex-end; gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--c-border);
+}
+
+/* 关闭按钮 */
+.icon-btn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: none; background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--c-text-3);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  flex: 0 0 auto;
+}
+
+.icon-btn:hover { background: var(--c-surface-2); color: var(--c-text); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* ---------- Toast ---------- */
+.toast-stack {
+  position: fixed;
+  right: var(--s-5); bottom: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-2);
+  z-index: 60;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-width: 240px; max-width: 380px;
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-text);
+  color: var(--c-bg);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--f-md);
+  animation: toast-in var(--dur-normal) var(--ease);
+}
+
+.toast--success { background: var(--c-success); color: #fff; }
+.toast--danger  { background: var(--c-danger);  color: #fff; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast.is-leaving {
+  animation: toast-out var(--dur-normal) var(--ease) forwards;
+}
+
+@keyframes toast-out {
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- 工具类 ---------- */
+.row { display: flex; align-items: center; gap: var(--s-3); }
+.row--between { justify-content: space-between; }
+.col { display: flex; flex-direction: column; gap: var(--s-2); }
+.muted { color: var(--c-text-2); }
+.dim { color: var(--c-text-3); }
+.mono { font-family: var(--font-mono); font-size: var(--f-sm); }
+.nowrap { white-space: nowrap; }
+.grow { flex: 1 1 auto; }
+
+.section-title {
+  font-size: var(--f-sm);
+  font-weight: var(--fw-bold);
+  color: var(--c-text-3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0 0 var(--s-3);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--c-border-strong);
+  border-radius: var(--r-full);
+  border: 2px solid var(--c-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--c-text-3); }
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.tab {
+  padding: var(--s-3) var(--s-4);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--f-md);
+  color: var(--c-text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease);
+}
+
+.tab:hover { color: var(--c-text); }
+
+.tab[aria-selected="true"] {
+  color: var(--c-brand-ink);
+  border-bottom-color: var(--c-brand);
+  font-weight: var(--fw-medium);
+}
+
+/* ---------- 分页 ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--s-2);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.page-btn:hover:not(:disabled) { background: var(--c-surface-2); }
+
+.page-btn[aria-current="page"] {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: var(--c-text-inverse);
+  font-weight: var(--fw-medium);
+}
+
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ---------- 面包屑 ---------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  flex-wrap: wrap;
+}
+
+.breadcrumb a {
+  color: var(--c-text-2);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover { color: var(--c-brand-ink); text-decoration: underline; }
+
+.breadcrumb__sep { color: var(--c-text-3); user-select: none; }
+
+.breadcrumb [aria-current="page"] { color: var(--c-text); font-weight: var(--fw-medium); }
+
+/* ---------- 头像 ---------- */
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: var(--r-full);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-ink);
+  display: grid; place-items: center;
+  font-size: var(--f-sm);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.avatar--sm { width: 24px; height: 24px; font-size: var(--f-xs); }
+.avatar--lg { width: 40px; height: 40px; font-size: var(--f-md); }
+
+/* ---------- 分割线 ---------- */
+.divider {
+  height: 1px;
+  background: var(--c-border);
+  border: none;
+  margin: var(--s-4) 0;
+}
+
+/* ---------- 搜索框 ---------- */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search svg {
+  position: absolute;
+  left: var(--s-3);
+  width: 14px; height: 14px;
+  color: var(--c-text-3);
+  pointer-events: none;
+}
+
+.search .input { padding-left: 34px; }
+
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.toolbar__spacer { flex: 1 1 auto; }
+
+/* ---------- 描述列表 ---------- */
+.desc-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-3) var(--s-5);
+  font-size: var(--f-md);
+}
+
+.desc-list dt { color: var(--c-text-3); font-size: var(--f-sm); }
+.desc-list dd { margin: 0; color: var(--c-text); }
+
+/* ---------- 步骤条 ---------- */
+.steps { display: flex; align-items: center; gap: var(--s-2); }
+
+.step {
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--f-sm);
+  color: var(--c-text-3);
+}
+
+.step__num {
+  width: 22px; height: 22px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  display: grid; place-items: center;
+  font-size: var(--f-xs);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.step.is-active { color: var(--c-text); font-weight: var(--fw-medium); }
+.step.is-active .step__num { background: var(--c-brand); color: var(--c-text-inverse); }
+.step.is-done .step__num { background: var(--c-success); color: #fff; }
+
+.step__line {
+  width: 24px; height: 1px;
+  background: var(--c-border-strong);
+  flex: 0 0 auto;
+}
+
+/* ---------- 多选框 / 单选框 ---------- */
+.checkbox, .radio {
+  width: 16px; height: 16px;
+  accent-color: var(--c-brand);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+/* ---------- 开关 ---------- */
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  border-radius: var(--r-full);
+  background: var(--c-border-strong);
+  border: none;
+  cursor: pointer;
+  transition: background var(--dur-normal) var(--ease);
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-normal) var(--ease);
+}
+
+.switch[aria-checked="true"] { background: var(--c-brand); }
+.switch[aria-checked="true"]::after { transform: translateX(16px); }
+
+/* ---------- 进度条 ---------- */
+.progress {
+  height: 6px;
+  background: var(--c-surface-3);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--c-brand);
+  border-radius: var(--r-full);
+  transition: width var(--dur-slow) var(--ease);
+}
+
+/* ---------- 提示条 ---------- */
+.alert {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: var(--f-md);
+  border: 1px solid transparent;
+}
+
+.alert--info    { background: var(--c-info-soft);    color: var(--c-info);    border-color: var(--c-info); }
+.alert--success { background: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success); }
+.alert--warning { background: var(--c-warning-soft); color: var(--c-warning); border-color: var(--c-warning); }
+.alert--danger  { background: var(--c-danger-soft);  color: var(--c-danger);  border-color: var(--c-danger); }
+
+/* ---------- 列表项 ---------- */
+.list { display: flex; flex-direction: column; }
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.list-item:last-child { border-bottom: none; }
+.list-item:hover { background: var(--c-surface-2); }
+
+/* ---------- 描述文字 ---------- */
+.help-text {
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+}
+
+/* ---------- 评审侧栏（req2proto 专属） ---------- */
+.review-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(360px, 92vw);
+  background: var(--c-surface);
+  border-left: 1px solid var(--c-border);
+  box-shadow: var(--shadow-xl);
+  transform: translateX(100%);
+  transition: transform var(--dur-normal) var(--ease);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+}
+
+.review-panel.is-open { transform: translateX(0); }
+
+.review-panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.review-panel__head h2 { flex: 1 1 auto; }
+
+.review-panel__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-3) var(--s-2);
+}
+
+.review-summary {
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  padding: var(--s-2) var(--s-3) var(--s-3);
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--s-2);
+}
+
+.review-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  font-size: var(--f-sm);
+}
+
+.review-row__icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.review-row__id {
+  font-family: var(--font-mono);
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  flex: 0 0 auto;
+}
+
+.review-row__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-row__meta { font-size: var(--f-xs); color: var(--c-text-3); flex: 0 0 auto; }
+
+.review-row--ok .review-row__icon { background: var(--c-success-soft); color: var(--c-success); }
+.review-row--warn .review-row__icon { background: var(--c-warning-soft); color: var(--c-warning); }
+.review-row--bad .review-row__icon { background: var(--c-danger-soft); color: var(--c-danger); }
+.review-row--info .review-row__icon { background: var(--c-info-soft); color: var(--c-info); }
+
+.review-row--bad { background: var(--c-danger-soft); }
+.review-row--warn { background: var(--c-warning-soft); }
+
+.review-sep {
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  padding: var(--s-3) var(--s-3) var(--s-1);
+  font-weight: var(--fw-medium);
+}
+
+</style>
+<style>
+/* 预览页自身布局（不进入原型） */
+body { padding: var(--s-6); }
+.gallery { max-width: 1560px; margin: 0 auto; display: grid; gap: var(--s-6); }
+.gallery__head { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
+.gallery__head h1 { font-size: var(--f-2xl); margin: 0; }
+.gallery__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(600px, 1fr)); gap: var(--s-6); }
+
+.th-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column;
+}
+.th-card__head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+.th-card__name { font-size: var(--f-lg); margin: 0 0 var(--s-1); }
+.th-card__meta { margin: 0; font-size: var(--f-sm); color: var(--c-text-2); }
+.th-demo { display: flex; height: 348px; background: var(--c-bg); }
+.th-demo__side {
+  width: 132px; flex: 0 0 132px;
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  padding: var(--s-3) var(--s-2);
+  display: flex; flex-direction: column; gap: var(--s-1);
+}
+.th-demo__brand { padding: var(--s-2) var(--s-2) var(--s-3); }
+.th-demo__side .nav-item { padding: var(--s-2); font-size: var(--f-xs); gap: var(--s-2); }
+.th-demo__side .nav-item svg { width: 12px; height: 12px; }
+.th-demo__main { flex: 1 1 auto; padding: var(--s-3); display: flex; flex-direction: column; gap: var(--s-3); overflow: hidden; }
+.th-demo__top { display: flex; align-items: center; gap: var(--s-2); }
+.th-demo__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.th-stat {
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-md); padding: var(--s-3);
+  display: flex; flex-direction: column; gap: var(--s-1); align-items: flex-start;
+}
+.th-stat__label { font-size: var(--f-xs); color: var(--c-text-3); }
+.th-stat__num { font-size: var(--f-xl); font-weight: var(--fw-bold); line-height: 1.2; }
+.th-table { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); overflow: hidden; font-size: var(--f-xs); }
+.th-table th, .th-table td { padding: var(--s-2) var(--s-3); }
+.th-card__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+  font-size: var(--f-xs); color: var(--c-text-2);
+}
+.th-card__code { background: var(--c-surface); padding: 2px 6px; border-radius: var(--r-sm); color: var(--c-text); }
+@media (max-width: 700px) { .gallery__grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="gallery">
+  <header class="gallery__head">
+    <h1>行业主题预览</h1>
+    <p class="muted" style="margin:0">8 套主题 · 同一套组件 · 切换 <code class="th-card__code">data-theme</code> 即换肤</p>
+  </header>
+  <div class="gallery__grid">
+
+<section class="th-card" data-theme="saas">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">SaaS / 工具</h2>
+      <p class="th-card__meta"><span class="mono">saas</span> · 靛蓝 · 科技感、默认主题</p>
+    </div>
+    <span class="badge badge--brand">saas</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">S</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：效率工具、协作平台、开发者产品</span>
+    <code class="th-card__code">&lt;html data-theme="saas"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="medical">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">医疗健康</h2>
+      <p class="th-card__meta"><span class="mono">medical</span> · 青绿 · 专业不刺眼</p>
+    </div>
+    <span class="badge badge--brand">medical</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">医</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：HIS、电子病历、健康管理、检验报告</span>
+    <code class="th-card__code">&lt;html data-theme="medical"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="gov">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">政企 / 政务</h2>
+      <p class="th-card__meta"><span class="mono">gov</span> · 正蓝 · 权威可信</p>
+    </div>
+    <span class="badge badge--brand">gov</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">政</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：政务大厅、监管平台、党建、公共服务</span>
+    <code class="th-card__code">&lt;html data-theme="gov"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="finance">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">金融 / 银行</h2>
+      <p class="th-card__meta"><span class="mono">finance</span> · 藏青 · 稳健降低饱和</p>
+    </div>
+    <span class="badge badge--brand">finance</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">金</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：银行后台、风控、保险、审计</span>
+    <code class="th-card__code">&lt;html data-theme="finance"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="education">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">教育</h2>
+      <p class="th-card__meta"><span class="mono">education</span> · 墨橙 · 活力但不喧闹</p>
+    </div>
+    <span class="badge badge--brand">education</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">教</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：K12、培训、题库、教务</span>
+    <code class="th-card__code">&lt;html data-theme="education"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="ecommerce">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">电商 / 零售</h2>
+      <p class="th-card__meta"><span class="mono">ecommerce</span> · 玫红 · 促销紧迫感</p>
+    </div>
+    <span class="badge badge--brand">ecommerce</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">电</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：商城、订单、营销、直播带货</span>
+    <code class="th-card__code">&lt;html data-theme="ecommerce"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="data">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">数据 / 分析</h2>
+      <p class="th-card__meta"><span class="mono">data</span> · 深青 · 理性不易疲劳</p>
+    </div>
+    <span class="badge badge--brand">data</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">数</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：BI 看板、数据治理、报表、监控</span>
+    <code class="th-card__code">&lt;html data-theme="data"&gt;</code>
+  </footer>
+</section>
+
+<section class="th-card" data-theme="life">
+  <header class="th-card__head">
+    <div>
+      <h2 class="th-card__name">生活服务</h2>
+      <p class="th-card__meta"><span class="mono">life</span> · 陶土橙 · 亲和温暖</p>
+    </div>
+    <span class="badge badge--brand">life</span>
+  </header>
+
+  <div class="th-demo">
+    <div class="th-demo__side">
+      <div class="th-demo__brand"><span class="sidebar__brand-mark">生</span></div>
+      <div class="nav-item is-active"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>概览</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>列表</div>
+      <div class="nav-item"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>记录</div>
+    </div>
+
+    <div class="th-demo__main">
+      <div class="th-demo__top">
+        <strong style="font-size:var(--f-md)">数据概览</strong>
+        <span class="grow"></span>
+        <button class="btn btn--primary btn--sm">新建</button>
+      </div>
+
+      <div class="th-demo__grid">
+        <div class="th-stat">
+          <span class="th-stat__label">今日处理</span>
+          <span class="th-stat__num" style="color:var(--c-brand-ink)">1,284</span>
+          <span class="badge badge--success"><i class="dot"></i>+12.5%</span>
+        </div>
+        <div class="th-stat">
+          <span class="th-stat__label">待办</span>
+          <span class="th-stat__num">37</span>
+          <span class="badge badge--warning"><i class="dot"></i>需关注</span>
+        </div>
+      </div>
+
+      <table class="table th-table">
+        <thead><tr><th>编号</th><th>名称</th><th>状态</th><th class="table__num">金额</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TK-20261029-001</td><td>系统升级申请</td><td><span class="badge badge--success"><i class="dot"></i>已完成</span></td><td class="table__num">1,280.00</td></tr>
+          <tr><td class="mono">TK-20261029-002</td><td>权限变更</td><td><span class="badge badge--warning"><i class="dot"></i>处理中</span></td><td class="table__num">860.00</td></tr>
+          <tr><td class="mono">TK-20261029-003</td><td>数据导出</td><td><span class="badge badge--danger"><i class="dot"></i>已驳回</span></td><td class="table__num">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="th-card__foot">
+    <span class="th-card__for">适用：到家服务、社区、预约、配送</span>
+    <code class="th-card__code">&lt;html data-theme="life"&gt;</code>
+  </footer>
+</section>
+  </div>
+</div>
+</body>
+</html>

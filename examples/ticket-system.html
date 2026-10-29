@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="saas">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工单管理系统 · 原型</title>
+<!--
+  由 req2proto 生成。占位符（写作「双花括号 + 名字」，此处不写全避免被替换）：
+  THEME 主题 id（saas/medical/gov/finance/education/ecommerce/data/life）
+  PRODUCT 产品名   PRODUCT_INITIAL 产品首字   HOME 首页路由
+  REQ_MAP 功能清单 JSON   MOCK_DATA 模拟数据   VIEWS 视图函数   ROUTES 路由表
+  THEME_CSS / SHARED_CSS / CUSTOM_CSS 三段样式
+  约束：单文件、零外部请求、hash 路由、data-req 追溯
+-->
+<style>
+/* ============ theme.css ============ */
+/* ============================================================
+   theme.css — 设计 token 单一来源
+   用法：<html data-theme="medical"> 切换行业主题
+   不写 hex 在别处；所有组件只引用 var(--*)
+   ============================================================ */
+
+/* ---------- 1. 中性底座（所有主题共用） ---------- */
+:root {
+  /* 背景层级：页面 → 卡片 → 悬浮 */
+  --c-bg: #f7f8fa;
+  --c-surface: #ffffff;
+  --c-surface-2: #f2f4f7;
+  --c-surface-3: #e8ebf0;
+
+  /* 描边 */
+  --c-border: #e4e8ee;
+  --c-border-strong: #cfd6e0;
+
+  /* 文字层级：主 → 次 → 弱 */
+  --c-text: #0f172a;
+  --c-text-2: #4a5568;
+  --c-text-3: #8a94a6;
+  --c-text-inverse: #ffffff;
+
+  /* 语义色（状态不可用品牌色替代） */
+  --c-success: #0f766e;
+  --c-success-soft: #e6f7f5;
+  --c-warning: #b45309;
+  --c-warning-soft: #fef3e2;
+  --c-danger: #b91c1c;
+  --c-danger-soft: #feecec;
+  --c-info: #0369a1;
+  --c-info-soft: #e6f2fb;
+
+  /* 圆角 */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-full: 999px;
+
+  /* 间距（4 的倍数，禁止碎数） */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* 字号阶梯（5 档，禁止跳档） */
+  --f-xs: 12px;
+  --f-sm: 13px;
+  --f-md: 14px;
+  --f-lg: 16px;
+  --f-xl: 20px;
+  --f-2xl: 28px;
+  --f-3xl: 36px;
+
+  /* 行高 */
+  --lh-tight: 1.3;
+  --lh-normal: 1.6;
+
+  /* 字重 */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+
+  /* 阴影（一层柔和，不用硬投影） */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, .12);
+  --shadow-xl: 0 24px 56px rgba(15, 23, 42, .18);
+
+  /* 字体栈（系统字体，零外部请求） */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* 动效 */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --dur-fast: 120ms;
+  --dur-normal: 200ms;
+  --dur-slow: 320ms;
+
+  /* 布局 */
+  --sidebar-w: 232px;
+  --header-h: 56px;
+  --content-max: 1280px;
+}
+
+/* ---------- 2. 行业主题（只覆盖品牌色系，中性底座不动） ---------- */
+
+/* 默认：SaaS / 工具型 — 靛蓝，科技感 */
+:root,
+[data-theme="saas"] {
+  --c-brand: #4f46e5;
+  --c-brand-hover: #3730a3;
+  --c-brand-ink: #4f46e5;
+  --c-brand-soft: #eef0ff;
+  --c-brand-line: #b9b8f9;
+  --c-focus: rgba(79, 70, 229, .32);
+}
+
+/* 医疗健康 — 青绿，专业不刺眼；避开"环保绿"的廉价感 */
+[data-theme="medical"] {
+  --c-brand: #0f766e;
+  --c-brand-hover: #115e59;
+  --c-brand-ink: #0a8279;
+  --c-brand-soft: #e6f7f5;
+  --c-brand-line: #99ddd6;
+  --c-focus: rgba(15, 118, 110, .32);
+}
+
+/* 政企 / 政务 — 正蓝，权威可信；国内政企系统的事实标准色 */
+[data-theme="gov"] {
+  --c-brand: #165dff;
+  --c-brand-hover: #0b4fd1;
+  --c-brand-ink: #165dff;
+  --c-brand-soft: #e8f1ff;
+  --c-brand-line: #a8c8ff;
+  --c-focus: rgba(22, 93, 255, .32);
+}
+
+/* 金融 / 银行 — 深藏青，稳健；降饱和避免"促销感" */
+[data-theme="finance"] {
+  --c-brand: #123a6b;
+  --c-brand-hover: #0d2b50;
+  --c-brand-ink: #123a6b;
+  --c-brand-soft: #e9eff7;
+  --c-brand-line: #a9bdd6;
+  --c-focus: rgba(18, 58, 107, .32);
+}
+
+/* 教育 — 墨橙，活力但不喧闹；和 K12 满屏蓝做区分 */
+[data-theme="education"] {
+  --c-brand: #c2410c;
+  --c-brand-hover: #9a3412;
+  --c-brand-ink: #c2410c;
+  --c-brand-soft: #fff1e6;
+  --c-brand-line: #ffc193;
+  --c-focus: rgba(194, 65, 12, .32);
+}
+
+/* 电商 / 零售 — 玫红，促销紧迫感；比大红更现代 */
+[data-theme="ecommerce"] {
+  --c-brand: #be123c;
+  --c-brand-hover: #9f1239;
+  --c-brand-ink: #e11d48;
+  --c-brand-soft: #ffe9ee;
+  --c-brand-line: #fda4b8;
+  --c-focus: rgba(190, 18, 60, .32);
+}
+
+/* 数据 / 分析 — 深青，理性冷静；适合密集表格不疲劳 */
+[data-theme="data"] {
+  --c-brand: #0e7490;
+  --c-brand-hover: #155e75;
+  --c-brand-ink: #0e7490;
+  --c-brand-soft: #e0f7fc;
+  --c-brand-line: #7dd3e8;
+  --c-focus: rgba(14, 116, 144, .32);
+}
+
+/* 生活服务 — 陶土橙，亲和温暖；降饱和避开外卖平台的荧光橙 */
+[data-theme="life"] {
+  --c-brand: #b04a26;
+  --c-brand-hover: #8f3c1f;
+  --c-brand-ink: #c0502a;
+  --c-brand-soft: #fff0ea;
+  --c-brand-line: #ffb59b;
+  --c-focus: rgba(176, 74, 38, .32);
+}
+
+/* ---------- 3. 暗色模式（可选，加 data-dark="1"） ---------- */
+[data-dark="1"] {
+  --c-bg: #0b1220;
+  --c-surface: #131b2b;
+  --c-surface-2: #1b2437;
+  --c-surface-3: #232e44;
+  --c-border: #263149;
+  --c-border-strong: #37445f;
+  --c-text: #e8edf5;
+  --c-text-2: #a3aec2;
+  --c-text-3: #6f7d94;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, .5);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, .6);
+}
+
+/* 暗色下品牌色提亮，保证在深底上可读 */
+[data-dark="1"][data-theme="saas"]      { --c-brand: #818cf8; --c-brand-hover: #a5b4fc; --c-brand-ink: #a5b4fc; --c-brand-soft: #1e1b4b; --c-brand-line: #4338ca; }
+[data-dark="1"][data-theme="medical"]   { --c-brand: #2dd4bf; --c-brand-hover: #5eead4; --c-brand-ink: #5eead4; --c-brand-soft: #0f2e2b; --c-brand-line: #115e59; }
+[data-dark="1"][data-theme="gov"]       { --c-brand: #4d87ff; --c-brand-hover: #7aa6ff; --c-brand-ink: #7aa6ff; --c-brand-soft: #0f1f3d; --c-brand-line: #1e40af; }
+[data-dark="1"][data-theme="finance"]   { --c-brand: #6b93c9; --c-brand-hover: #8fb0dd; --c-brand-ink: #8fb0dd; --c-brand-soft: #14243b; --c-brand-line: #2c4a72; }
+[data-dark="1"][data-theme="education"] { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a08; --c-brand-line: #9a3412; }
+[data-dark="1"][data-theme="ecommerce"] { --c-brand: #fb7185; --c-brand-hover: #fda4af; --c-brand-ink: #fda4af; --c-brand-soft: #3b0a1a; --c-brand-line: #9f1239; }
+[data-dark="1"][data-theme="data"]      { --c-brand: #22d3ee; --c-brand-hover: #67e8f9; --c-brand-ink: #67e8f9; --c-brand-soft: #0a2a33; --c-brand-line: #155e75; }
+[data-dark="1"][data-theme="life"]      { --c-brand: #fb923c; --c-brand-hover: #fdba74; --c-brand-ink: #fdba74; --c-brand-soft: #331a0d; --c-brand-line: #8f3c1f; }
+
+/* ---------- 4. 无障碍降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* ============ shared.css ============ */
+/* ============================================================
+   shared.css — 组件骨架
+   只引用 var(--*)，不写死任何颜色/尺寸
+   依赖 theme.css，必须在其后引入
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--f-md);
+  line-height: var(--lh-normal);
+  color: var(--c-text);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 布局骨架 ---------- */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex: 0 0 var(--sidebar-w);
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-4) var(--s-3);
+  gap: var(--s-1);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-4);
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.sidebar__brand-mark {
+  width: 28px; height: 28px;
+  border-radius: var(--r-md);
+  background: var(--c-brand);
+  color: var(--c-text-inverse);
+  display: grid; place-items: center;
+  font-size: var(--f-md);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--c-text-2);
+  font-size: var(--f-md);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.nav-item:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.nav-item[aria-current="page"],
+.nav-item.is-active {
+  background: var(--c-brand-soft);
+  color: var(--c-brand-ink);
+  font-weight: var(--fw-medium);
+}
+
+.nav-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+.nav-group {
+  padding: var(--s-4) var(--s-3) var(--s-1);
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  font-weight: var(--fw-medium);
+  letter-spacing: .04em;
+}
+
+.main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.topbar {
+  height: var(--header-h);
+  flex: 0 0 var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-5);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.topbar__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.topbar__spacer { flex: 1 1 auto; }
+
+.content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-5);
+}
+
+.content__inner { max-width: var(--content-max); margin: 0 auto; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: var(--f-md);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--c-focus);
+}
+
+.btn--primary {
+  background: var(--c-brand);
+  color: var(--c-text-inverse);
+}
+.btn--primary:hover { background: var(--c-brand-hover); }
+
+.btn--secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-color: var(--c-border-strong);
+}
+.btn--secondary:hover { background: var(--c-surface-2); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--c-text-2);
+}
+.btn--ghost:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+.btn--danger {
+  background: var(--c-danger);
+  color: var(--c-text-inverse);
+}
+
+.btn--sm { height: 28px; padding: 0 var(--s-3); font-size: var(--f-sm); }
+.btn--lg { height: 44px; padding: 0 var(--s-5); font-size: var(--f-lg); }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn--loading { position: relative; color: transparent !important; }
+.btn--loading::after {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--c-text-inverse);
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+
+.card--flush { padding: 0; overflow: hidden; }
+
+.card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.card__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.card__body { padding: var(--s-5); }
+
+/* ---------- 表格 ---------- */
+.table { width: 100%; border-collapse: collapse; font-size: var(--f-md); }
+
+.table th {
+  text-align: left;
+  font-weight: var(--fw-medium);
+  font-size: var(--f-sm);
+  color: var(--c-text-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+  vertical-align: middle;
+}
+
+.table tbody tr { transition: background var(--dur-fast) var(--ease); }
+.table tbody tr:hover { background: var(--c-surface-2); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table__num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 标签 / 徽章 ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 22px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  font-size: var(--f-xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+}
+
+.badge--success { background: var(--c-success-soft); color: var(--c-success); }
+.badge--warning { background: var(--c-warning-soft); color: var(--c-warning); }
+.badge--danger  { background: var(--c-danger-soft);  color: var(--c-danger); }
+.badge--info    { background: var(--c-info-soft);    color: var(--c-info); }
+.badge--brand   { background: var(--c-brand-soft);   color: var(--c-brand-ink); }
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+/* ---------- 表单 ---------- */
+.field { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.field__label {
+  font-size: var(--f-sm);
+  font-weight: var(--fw-medium);
+  color: var(--c-text-2);
+}
+
+.field__label .req { color: var(--c-danger); margin-left: 2px; }
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: var(--f-md);
+  color: var(--c-text);
+  background: var(--c-surface);
+  transition: border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+
+.input::placeholder, .textarea::placeholder { color: var(--c-text-3); }
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px var(--c-focus);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--c-danger);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, .16);
+}
+
+.field__error {
+  font-size: var(--f-xs);
+  color: var(--c-danger);
+  display: none;
+}
+
+.field.has-error .field__error { display: block; }
+
+.textarea { min-height: 88px; resize: vertical; }
+
+/* ---------- 空态 / 错误态 / 加载态 ---------- */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-8) var(--s-5);
+  text-align: center;
+}
+
+.state__icon {
+  width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+}
+
+.state__title {
+  font-size: var(--f-lg);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.state__desc {
+  font-size: var(--f-md);
+  color: var(--c-text-2);
+  margin: 0;
+  max-width: 420px;
+}
+
+.state--error .state__icon { background: var(--c-danger-soft); color: var(--c-danger); }
+
+/* 骨架屏 */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--c-surface-2) 0%,
+    var(--c-surface-3) 50%,
+    var(--c-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--r-sm);
+  height: 14px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- 抽屉 ---------- */
+.drawer-mask {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 40;
+}
+
+.drawer-mask.is-open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(520px, 92vw);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xl);
+  transform: translateX(100%);
+  transition: transform var(--dur-normal) var(--ease);
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer.is-open { transform: translateX(0); }
+
+.drawer__header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.drawer__title { font-size: var(--f-lg); font-weight: var(--fw-bold); margin: 0; flex: 1 1 auto; }
+.drawer__body { flex: 1 1 auto; overflow-y: auto; padding: var(--s-5); }
+.drawer__footer {
+  display: flex; justify-content: flex-end; gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--c-border);
+}
+
+/* ---------- 弹窗 ---------- */
+.modal-mask {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .38);
+  display: grid; place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 50;
+  padding: var(--s-5);
+}
+
+.modal-mask.is-open { opacity: 1; pointer-events: auto; }
+
+.modal {
+  width: min(480px, 100%);
+  background: var(--c-surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl);
+  transform: scale(.96) translateY(8px);
+  transition: transform var(--dur-normal) var(--ease);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-mask.is-open .modal { transform: scale(1) translateY(0); }
+
+.modal__header {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-5) var(--s-5) var(--s-4);
+}
+
+.modal__title { font-size: var(--f-lg); font-weight: var(--fw-bold); margin: 0; flex: 1 1 auto; }
+.modal__body { padding: 0 var(--s-5) var(--s-5); overflow-y: auto; display: grid; gap: var(--s-4); }
+.modal__footer {
+  display: flex; justify-content: flex-end; gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--c-border);
+}
+
+/* 关闭按钮 */
+.icon-btn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: none; background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--c-text-3);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  flex: 0 0 auto;
+}
+
+.icon-btn:hover { background: var(--c-surface-2); color: var(--c-text); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* ---------- Toast ---------- */
+.toast-stack {
+  position: fixed;
+  right: var(--s-5); bottom: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-2);
+  z-index: 60;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-width: 240px; max-width: 380px;
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-text);
+  color: var(--c-bg);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--f-md);
+  animation: toast-in var(--dur-normal) var(--ease);
+}
+
+.toast--success { background: var(--c-success); color: #fff; }
+.toast--danger  { background: var(--c-danger);  color: #fff; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast.is-leaving {
+  animation: toast-out var(--dur-normal) var(--ease) forwards;
+}
+
+@keyframes toast-out {
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- 工具类 ---------- */
+.row { display: flex; align-items: center; gap: var(--s-3); }
+.row--between { justify-content: space-between; }
+.col { display: flex; flex-direction: column; gap: var(--s-2); }
+.muted { color: var(--c-text-2); }
+.dim { color: var(--c-text-3); }
+.mono { font-family: var(--font-mono); font-size: var(--f-sm); }
+.nowrap { white-space: nowrap; }
+.grow { flex: 1 1 auto; }
+
+.section-title {
+  font-size: var(--f-sm);
+  font-weight: var(--fw-bold);
+  color: var(--c-text-3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0 0 var(--s-3);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--c-border-strong);
+  border-radius: var(--r-full);
+  border: 2px solid var(--c-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--c-text-3); }
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.tab {
+  padding: var(--s-3) var(--s-4);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--f-md);
+  color: var(--c-text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease);
+}
+
+.tab:hover { color: var(--c-text); }
+
+.tab[aria-selected="true"] {
+  color: var(--c-brand-ink);
+  border-bottom-color: var(--c-brand);
+  font-weight: var(--fw-medium);
+}
+
+/* ---------- 分页 ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--s-2);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.page-btn:hover:not(:disabled) { background: var(--c-surface-2); }
+
+.page-btn[aria-current="page"] {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: var(--c-text-inverse);
+  font-weight: var(--fw-medium);
+}
+
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ---------- 面包屑 ---------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  flex-wrap: wrap;
+}
+
+.breadcrumb a {
+  color: var(--c-text-2);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover { color: var(--c-brand-ink); text-decoration: underline; }
+
+.breadcrumb__sep { color: var(--c-text-3); user-select: none; }
+
+.breadcrumb [aria-current="page"] { color: var(--c-text); font-weight: var(--fw-medium); }
+
+/* ---------- 头像 ---------- */
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: var(--r-full);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-ink);
+  display: grid; place-items: center;
+  font-size: var(--f-sm);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.avatar--sm { width: 24px; height: 24px; font-size: var(--f-xs); }
+.avatar--lg { width: 40px; height: 40px; font-size: var(--f-md); }
+
+/* ---------- 分割线 ---------- */
+.divider {
+  height: 1px;
+  background: var(--c-border);
+  border: none;
+  margin: var(--s-4) 0;
+}
+
+/* ---------- 搜索框 ---------- */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search svg {
+  position: absolute;
+  left: var(--s-3);
+  width: 14px; height: 14px;
+  color: var(--c-text-3);
+  pointer-events: none;
+}
+
+.search .input { padding-left: 34px; }
+
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.toolbar__spacer { flex: 1 1 auto; }
+
+/* ---------- 描述列表 ---------- */
+.desc-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-3) var(--s-5);
+  font-size: var(--f-md);
+}
+
+.desc-list dt { color: var(--c-text-3); font-size: var(--f-sm); }
+.desc-list dd { margin: 0; color: var(--c-text); }
+
+/* ---------- 步骤条 ---------- */
+.steps { display: flex; align-items: center; gap: var(--s-2); }
+
+.step {
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--f-sm);
+  color: var(--c-text-3);
+}
+
+.step__num {
+  width: 22px; height: 22px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  display: grid; place-items: center;
+  font-size: var(--f-xs);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.step.is-active { color: var(--c-text); font-weight: var(--fw-medium); }
+.step.is-active .step__num { background: var(--c-brand); color: var(--c-text-inverse); }
+.step.is-done .step__num { background: var(--c-success); color: #fff; }
+
+.step__line {
+  width: 24px; height: 1px;
+  background: var(--c-border-strong);
+  flex: 0 0 auto;
+}
+
+/* ---------- 多选框 / 单选框 ---------- */
+.checkbox, .radio {
+  width: 16px; height: 16px;
+  accent-color: var(--c-brand);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+/* ---------- 开关 ---------- */
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  border-radius: var(--r-full);
+  background: var(--c-border-strong);
+  border: none;
+  cursor: pointer;
+  transition: background var(--dur-normal) var(--ease);
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-normal) var(--ease);
+}
+
+.switch[aria-checked="true"] { background: var(--c-brand); }
+.switch[aria-checked="true"]::after { transform: translateX(16px); }
+
+/* ---------- 进度条 ---------- */
+.progress {
+  height: 6px;
+  background: var(--c-surface-3);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--c-brand);
+  border-radius: var(--r-full);
+  transition: width var(--dur-slow) var(--ease);
+}
+
+/* ---------- 提示条 ---------- */
+.alert {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: var(--f-md);
+  border: 1px solid transparent;
+}
+
+.alert--info    { background: var(--c-info-soft);    color: var(--c-info);    border-color: var(--c-info); }
+.alert--success { background: var(--c-success-soft); color: var(--c-success); border-color: var(--c-success); }
+.alert--warning { background: var(--c-warning-soft); color: var(--c-warning); border-color: var(--c-warning); }
+.alert--danger  { background: var(--c-danger-soft);  color: var(--c-danger);  border-color: var(--c-danger); }
+
+/* ---------- 列表项 ---------- */
+.list { display: flex; flex-direction: column; }
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.list-item:last-child { border-bottom: none; }
+.list-item:hover { background: var(--c-surface-2); }
+
+/* ---------- 描述文字 ---------- */
+.help-text {
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+}
+
+/* ---------- 评审侧栏（req2proto 专属） ---------- */
+.review-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(360px, 92vw);
+  background: var(--c-surface);
+  border-left: 1px solid var(--c-border);
+  box-shadow: var(--shadow-xl);
+  transform: translateX(100%);
+  transition: transform var(--dur-normal) var(--ease);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+}
+
+.review-panel.is-open { transform: translateX(0); }
+
+.review-panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.review-panel__head h2 { flex: 1 1 auto; }
+
+.review-panel__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-3) var(--s-2);
+}
+
+.review-summary {
+  font-size: var(--f-sm);
+  color: var(--c-text-2);
+  padding: var(--s-2) var(--s-3) var(--s-3);
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--s-2);
+}
+
+.review-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  font-size: var(--f-sm);
+}
+
+.review-row__icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.review-row__id {
+  font-family: var(--font-mono);
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  flex: 0 0 auto;
+}
+
+.review-row__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-row__meta { font-size: var(--f-xs); color: var(--c-text-3); flex: 0 0 auto; }
+
+.review-row--ok .review-row__icon { background: var(--c-success-soft); color: var(--c-success); }
+.review-row--warn .review-row__icon { background: var(--c-warning-soft); color: var(--c-warning); }
+.review-row--bad .review-row__icon { background: var(--c-danger-soft); color: var(--c-danger); }
+.review-row--info .review-row__icon { background: var(--c-info-soft); color: var(--c-info); }
+
+.review-row--bad { background: var(--c-danger-soft); }
+.review-row--warn { background: var(--c-warning-soft); }
+
+.review-sep {
+  font-size: var(--f-xs);
+  color: var(--c-text-3);
+  padding: var(--s-3) var(--s-3) var(--s-1);
+  font-weight: var(--fw-medium);
+}
+
+
+/* ============ 本原型特有样式 ============ */
+
+/* 本原型特有（尽量为空，复用 shared.css） */
+.desc-list { grid-template-columns: 88px 1fr; }
+
+</style>
+</head>
+<body>
+
+<!-- ============ 应用外壳 ============ -->
+<div class="app">
+  <aside class="sidebar">
+    <a class="sidebar__brand" href="#/orders" data-no-req>
+      <span class="sidebar__brand-mark">工</span>
+      <span>工单管理系统</span>
+    </a>
+    <nav id="nav" aria-label="主导航"></nav>
+    <div class="grow"></div>
+    <button class="nav-item" id="review-btn" data-no-req style="color:var(--c-text-3);font-size:12px">
+      评审模式 <span class="badge" style="margin-left:auto">Shift+?</span>
+    </button>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 class="topbar__title" id="page-title">加载中</h1>
+      <div class="topbar__spacer"></div>
+      <div id="topbar-actions"></div>
+    </header>
+    <div class="content">
+      <div class="content__inner" id="view"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 全局容器 ============ -->
+<div class="drawer-mask" id="drawer-mask"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true"></aside>
+
+<div class="modal-mask" id="modal-mask">
+  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+</div>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<!-- ============ 评审侧栏 ============ -->
+<aside class="review-panel" id="review-panel" aria-hidden="true">
+  <header class="review-panel__head">
+    <h2 style="font-size:var(--f-lg);margin:0">需求覆盖</h2>
+    <button class="icon-btn" id="review-close" aria-label="关闭" data-no-req>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </header>
+  <div class="review-panel__body" id="review-body"></div>
+</aside>
+
+<!-- ============ 功能清单（追溯基线，勿改结构） ============ -->
+<script type="application/json" id="req-map">
+[
+  {
+    "id": "F-01",
+    "name": "工单列表",
+    "pri": "P0",
+    "route": "#/orders",
+    "src": "PRD §3.1"
+  },
+  {
+    "id": "F-02",
+    "name": "状态筛选",
+    "pri": "P0",
+    "route": "#/orders",
+    "src": "PRD §3.1"
+  },
+  {
+    "id": "F-03",
+    "name": "新建工单",
+    "pri": "P0",
+    "route": "#/orders/new",
+    "src": "PRD §3.2"
+  },
+  {
+    "id": "F-04",
+    "name": "表单校验",
+    "pri": "P0",
+    "route": "#/orders/new",
+    "src": "PRD §3.2"
+  },
+  {
+    "id": "F-05",
+    "name": "工单详情",
+    "pri": "P0",
+    "route": "#/orders/:id",
+    "src": "PRD §3.3"
+  },
+  {
+    "id": "F-06",
+    "name": "处理记录",
+    "pri": "P1",
+    "route": "#/orders/:id",
+    "src": "PRD §3.4"
+  },
+  {
+    "id": "F-07",
+    "name": "空态引导",
+    "pri": "P0",
+    "route": "#/orders",
+    "src": "PRD §4.1"
+  },
+  {
+    "id": "F-08",
+    "name": "加载失败重试",
+    "pri": "P0",
+    "route": "#/orders",
+    "src": "PRD §4.2"
+  },
+  {
+    "id": "F-09",
+    "name": "骨架屏",
+    "pri": "P1",
+    "route": "#/orders",
+    "src": "推断"
+  },
+  {
+    "id": "F-10",
+    "name": "批量关闭",
+    "pri": "P2",
+    "route": "#/orders",
+    "src": "PRD §3.5"
+  },
+  {
+    "id": "F-11",
+    "name": "导出",
+    "pri": "P2",
+    "route": "#/orders",
+    "src": "PRD §3.6"
+  }
+]
+</script>
+
+<script>
+/* ============================================================
+   mock 数据 —— 全部前端假数据，有真实业务语义
+   ============================================================ */
+const DB = {
+  "orders": [
+    {
+      "id": "TK-20261029-001",
+      "title": "系统升级申请",
+      "status": "done",
+      "owner": "张明",
+      "amount": 1280,
+      "dept": "技术部",
+      "created": "2026-10-29 09:12",
+      "desc": "需在周末完成生产环境升级，涉及 3 个服务。"
+    },
+    {
+      "id": "TK-20261029-002",
+      "title": "权限变更申请",
+      "status": "doing",
+      "owner": "李华",
+      "amount": 860,
+      "dept": "运维部",
+      "created": "2026-10-29 10:35",
+      "desc": "为财务组 5 名成员开通报销审批权限。"
+    },
+    {
+      "id": "TK-20261029-003",
+      "title": "数据导出申请",
+      "status": "rejected",
+      "owner": "王强",
+      "amount": 0,
+      "dept": "市场部",
+      "created": "2026-10-29 11:08",
+      "desc": "导出去年全年客户名单，用于年度复盘。"
+    },
+    {
+      "id": "TK-20261028-014",
+      "title": "会议室设备报修",
+      "status": "done",
+      "owner": "陈静",
+      "amount": 320,
+      "dept": "行政部",
+      "created": "2026-10-28 15:41",
+      "desc": "3 号会议室投屏无法连接，需更换 HDMI 线。"
+    },
+    {
+      "id": "TK-20261028-009",
+      "title": "新增供应商入库",
+      "status": "doing",
+      "owner": "赵磊",
+      "amount": 15600,
+      "dept": "采购部",
+      "created": "2026-10-28 14:02",
+      "desc": "引入本地办公用品供应商，需完成资质审核。"
+    },
+    {
+      "id": "TK-20261027-021",
+      "title": "员工入职账号开通",
+      "status": "done",
+      "owner": "孙丽",
+      "amount": 0,
+      "dept": "人事部",
+      "created": "2026-10-27 16:30",
+      "desc": "为新入职 2 名工程师开通邮箱与代码仓库权限。"
+    }
+  ],
+  "statusMap": {
+    "doing": {
+      "text": "处理中",
+      "cls": "warning"
+    },
+    "done": {
+      "text": "已完成",
+      "cls": "success"
+    },
+    "rejected": {
+      "text": "已驳回",
+      "cls": "danger"
+    }
+  }
+};
+
+/* ============================================================
+   视图（每个路由一个 render 函数，返回 DOM 节点）
+   ============================================================ */
+
+const fmtMoney = (n) => n ? n.toLocaleString('zh-CN', { minimumFractionDigits: 2 }) : '--';
+const badge = (st) => {
+  const m = DB.statusMap[st] || { text: st, cls: '' };
+  return '<span class="badge badge--' + m.cls + '"><i class="dot"></i>' + m.text + '</span>';
+};
+
+/* --- 列表页 --- */
+const viewOrders = ({ params }) => {
+  const st = params.state === 'loading' ? 'loading' : readState(params);
+
+  if (st === 'loading') {
+    const skRow = '<div class="row" style="gap:24px">'
+      + '<div class="skeleton" style="width:140px"></div>'
+      + '<div class="skeleton" style="width:180px"></div>'
+      + '<div class="skeleton" style="width:70px"></div>'
+      + '<div class="skeleton" style="width:60px"></div>'
+      + '<div class="skeleton" style="width:80px"></div>'
+      + '</div>';
+    return h('<div class="card card--flush">'
+      + '<div class="card__header"><div class="skeleton" style="width:180px;height:32px"></div>'
+      + '<span class="toolbar__spacer"></span>'
+      + '<div class="skeleton" style="width:96px;height:28px"></div></div>'
+      + '<div style="padding:16px;display:grid;gap:14px" data-req="F-09">'
+      + skRow.repeat(6)
+      + '</div></div>');
+  }
+
+  if (st === 'error') {
+    return h(`<div class="card">
+      <div class="state state--error">
+        <div class="state__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg></div>
+        <h3 class="state__title">工单列表加载失败</h3>
+        <p class="state__desc">服务暂时不可用（503），请稍后重试或联系运维</p>
+        <button class="btn btn--secondary btn--sm" data-req="F-08" onclick="render()">重新加载</button>
+      </div>
+    </div>`);
+  }
+
+  if (st === 'empty') {
+    return h(`<div class="card">
+      <div class="state">
+        <div class="state__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5 5h14l2 7v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5z"/></svg></div>
+        <h3 class="state__title">还没有工单</h3>
+        <p class="state__desc">创建第一张工单，开始跟踪处理进度</p>
+        <button class="btn btn--primary btn--sm" data-req="F-07" onclick="location.hash='#/orders/new'">新建工单</button>
+      </div>
+    </div>`);
+  }
+
+  const rows = DB.orders.map(o => `
+    <tr data-req="F-05" style="cursor:pointer" onclick="location.hash='#/orders/${o.id}'">
+      <td class="mono">${o.id}</td>
+      <td>${o.title}</td>
+      <td><span class="badge badge--info">${o.dept}</span></td>
+      <td>${o.owner}</td>
+      <td>${badge(o.status)}</td>
+      <td class="table__num">${fmtMoney(o.amount)}</td>
+      <td class="dim mono">${o.created}</td>
+    </tr>`).join('');
+
+  return h(`<div class="card card--flush">
+    <div class="card__header">
+      <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg><input class="input" data-req="F-02" placeholder="搜索工单编号或标题" style="width:220px" aria-label="搜索"></div>
+      <select class="select" data-req="F-02" style="width:130px" aria-label="按状态筛选" onchange="toast('已筛选：' + this.options[this.selectedIndex].text)">
+        <option>全部状态</option><option>处理中</option><option>已完成</option><option>已驳回</option>
+      </select>
+      <span class="toolbar__spacer"></span>
+      <button class="btn btn--secondary btn--sm" data-req="F-11" disabled>导出</button>
+      <button class="btn btn--secondary btn--sm" data-req="F-10" disabled>批量关闭</button>
+      <button class="btn btn--primary btn--sm" data-req="F-03" onclick="location.hash='#/orders/new'">新建工单</button>
+    </div>
+    <table class="table">
+      <thead><tr><th>工单编号</th><th>标题</th><th>部门</th><th>负责人</th><th>状态</th><th class="table__num">金额</th><th>创建时间</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`);
+};
+
+/* --- 新建页 --- */
+const viewCreate = () => {
+  const form = h(`<div class="card" style="max-width:640px">
+    <div class="card__header"><h2 class="card__title">新建工单</h2></div>
+    <div class="card__body" style="display:grid;gap:16px">
+      <div class="field" id="f-title">
+        <label class="field__label">工单标题<span class="req">*</span></label>
+        <input class="input" data-req="F-04" id="in-title" placeholder="简要描述问题" aria-describedby="e-title">
+        <p class="field__error" id="e-title">标题不能为空</p>
+      </div>
+      <div class="field" id="f-dept">
+        <label class="field__label">所属部门<span class="req">*</span></label>
+        <select class="select" data-req="F-04" id="in-dept">
+          <option value="">请选择</option><option>技术部</option><option>运维部</option><option>市场部</option><option>行政部</option><option>采购部</option><option>人事部</option>
+        </select>
+        <p class="field__error" id="e-dept">请选择所属部门</p>
+      </div>
+      <div class="field">
+        <label class="field__label">问题描述</label>
+        <textarea class="textarea" data-req="F-04" id="in-desc" placeholder="补充背景、影响范围、期望完成时间"></textarea>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button class="btn btn--ghost" data-req="F-03" onclick="location.hash='#/orders'">取消</button>
+        <button class="btn btn--primary" data-req="F-03" id="btn-submit">提交</button>
+      </div>
+    </div>
+  </div>`);
+
+  form.querySelector('#btn-submit').addEventListener('click', () => {
+    const t = form.querySelector('#in-title');
+    const d = form.querySelector('#in-dept');
+    form.querySelector('#f-title').classList.remove('has-error');
+    form.querySelector('#f-dept').classList.remove('has-error');
+    t.removeAttribute('aria-invalid');
+    let bad = false;
+    if (!t.value.trim()) { form.querySelector('#f-title').classList.add('has-error'); t.setAttribute('aria-invalid', 'true'); bad = true; }
+    if (!d.value) { form.querySelector('#f-dept').classList.add('has-error'); bad = true; }
+    if (bad) return;
+    toast('工单创建成功', 'success');
+    location.hash = '#/orders';
+  });
+
+  return form;
+};
+
+/* --- 详情页 --- */
+const viewDetail = ({ args }) => {
+  const o = DB.orders.find(x => x.id === args.id);
+  if (!o) {
+    return h(`<div class="state state--error">
+      <div class="state__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg></div>
+      <h3 class="state__title">工单不存在</h3>
+      <p class="state__desc">编号 ${args.id} 未找到，可能已被删除</p>
+      <a class="btn btn--secondary btn--sm" href="#/orders" data-req="F-01">返回列表</a>
+    </div>`);
+  }
+
+  return h(`<div style="display:grid;gap:16px;max-width:860px">
+    <nav class="breadcrumb">
+      <a href="#/orders" data-req="F-01">工单</a><span class="breadcrumb__sep">/</span><span aria-current="page">${o.id}</span>
+    </nav>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="margin:0 0 4px;font-size:var(--f-xl)">${o.title}</h2>
+          <span class="dim mono">${o.id}</span>
+        </div>
+        ${badge(o.status)}
+      </div>
+      <dl class="desc-list">
+        <dt>负责人</dt><dd>${o.owner}</dd>
+        <dt>所属部门</dt><dd>${o.dept}</dd>
+        <dt>金额</dt><dd>${fmtMoney(o.amount)} 元</dd>
+        <dt>创建时间</dt><dd>${o.created}</dd>
+        <dt>问题描述</dt><dd>${o.desc}</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <div class="card__header"><h3 class="card__title">处理记录</h3></div>
+      <div class="card__body" style="padding:0">
+        <div class="list" data-req="F-06">
+          <div class="list-item"><div class="avatar avatar--sm">张</div><div class="grow"><div style="font-size:13px">张明 提交了工单</div><div class="help-text">${o.created}</div></div></div>
+          <div class="list-item"><div class="avatar avatar--sm">李</div><div class="grow"><div style="font-size:13px">李华 认领并开始处理</div><div class="help-text">2026-10-29 10:02</div></div></div>
+          <div class="list-item"><div class="avatar avatar--sm">系</div><div class="grow"><div style="font-size:13px">系统 更新状态为${DB.statusMap[o.status].text}</div><div class="help-text">2026-10-29 11:20</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn btn--secondary" data-req="F-03" onclick="location.hash='#/orders/new'">新建工单</button>
+      <button class="btn btn--ghost" data-req="F-01" onclick="location.hash='#/orders'">返回列表</button>
+    </div>
+  </div>`);
+};
+
+
+/* ============================================================
+   路由
+   ============================================================ */
+const ROUTES = 
+[
+  { path: '/orders',       title: '工单列表', nav: '/orders', actions: () => '<span class="dim" style="font-size:13px">共 ' + DB.orders.length + ' 条</span>', render: viewOrders },
+  { path: '/orders/new',   title: '新建工单', nav: '/orders', actions: () => '', render: viewCreate },
+  { path: '/orders/:id',   title: '工单详情', nav: '/orders', actions: () => '', render: viewDetail, sampleArgs: { id: DB.orders[0].id } },
+  { path: '/',             title: '工单列表', nav: '/orders', actions: () => '', render: viewOrders },
+]
+;
+
+const parseHash = () => {
+  const raw = (location.hash || '').replace(/^#/, '') || '/';
+  const [path, query] = raw.split('?');
+  const params = Object.fromEntries(new URLSearchParams(query || ''));
+  return { path: path || '/', params };
+};
+
+const matchRoute = (path) => {
+  for (const r of ROUTES) {
+    const rSeg = r.path.split('/').filter(Boolean);
+    const pSeg = path.split('/').filter(Boolean);
+    if (rSeg.length !== pSeg.length) continue;
+    const args = {};
+    let ok = true;
+    for (let i = 0; i < rSeg.length; i++) {
+      if (rSeg[i].startsWith(':')) args[rSeg[i].slice(1)] = decodeURIComponent(pSeg[i]);
+      else if (rSeg[i] !== pSeg[i]) { ok = false; break; }
+    }
+    if (ok) return { route: r, args };
+  }
+  return null;
+};
+
+/* ============================================================
+   状态
+   ============================================================ */
+const state = {
+  loading: false,
+  listState: 'normal',   // normal | empty | error
+};
+
+/* 从 ?state= 读状态，方便演示时直接甩异常态链接 */
+const readState = (params) => {
+  if (params.state === 'empty' || params.state === 'error') return params.state;
+  return 'normal';
+};
+
+/* ============================================================
+   渲染
+   ============================================================ */
+const $ = (sel, root = document) => root.querySelector(sel);
+const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+const renderNav = (active) => {
+  const nav = $('#nav');
+  nav.innerHTML = `
+    <div class="nav-group">工作台</div>
+    
+<a class="nav-item" data-nav="/orders" href="#/orders" data-req="F-01">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 6h12M6 6v8"/></svg>
+  工单管理
+</a>
+<a class="nav-item" data-nav="/orders/new" href="#/orders/new" data-req="F-03">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+  新建工单
+</a>
+<div class="nav-group">异常态演示</div>
+<a class="nav-item" href="#/orders?state=empty" data-req="F-07">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M5.5 9.5h5"/></svg>
+  空态
+</a>
+<a class="nav-item" href="#/orders?state=error" data-req="F-08">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v4M8 11v.5"/></svg>
+  加载失败
+</a>
+
+  `;
+  nav.querySelectorAll('[data-nav]').forEach(a => {
+    if (active.startsWith(a.dataset.nav)) a.setAttribute('aria-current', 'page');
+  });
+};
+
+const render = () => {
+  const { path, params } = parseHash();
+  const matched = matchRoute(path);
+  state.listState = readState(params);
+
+  if (!matched) {
+    $('#page-title').textContent = '页面不存在';
+    $('#view').innerHTML = `
+      <div class="state state--error">
+        <div class="state__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+        </div>
+        <h3 class="state__title">页面不存在</h3>
+        <p class="state__desc">地址 ${path} 没有对应的页面</p>
+        <a class="btn btn--secondary btn--sm" href="#/orders" data-no-req>返回首页</a>
+      </div>`;
+    $('#topbar-actions').innerHTML = '';
+    renderNav('/none');
+    return;
+  }
+
+  const { route, args } = matched;
+  $('#page-title').textContent = typeof route.title === 'function' ? route.title(args) : route.title;
+  renderNav(route.nav || route.path);
+
+  const view = $('#view');
+  view.innerHTML = '';
+  const node = route.render({ args, params, state });
+  if (node) view.appendChild(node);
+  $('#topbar-actions').innerHTML = route.actions ? route.actions({ args, params }) : '';
+
+  window.scrollTo(0, 0);
+};
+
+/* ============================================================
+   交互原语
+   ============================================================ */
+const drawerEl = $('#drawer');
+const maskEl = $('#drawer-mask');
+
+const openDrawer = (html) => {
+  drawerEl.innerHTML = html;
+  drawerEl.classList.add('is-open');
+  drawerEl.setAttribute('aria-hidden', 'false');
+  maskEl.classList.add('is-open');
+  drawerEl._lastFocus = document.activeElement;
+  const first = drawerEl.querySelector('button, [href], input, select, textarea');
+  if (first) first.focus();
+};
+
+const closeDrawer = () => {
+  drawerEl.classList.remove('is-open');
+  drawerEl.setAttribute('aria-hidden', 'true');
+  maskEl.classList.remove('is-open');
+  if (drawerEl._lastFocus) drawerEl._lastFocus.focus();
+};
+
+const modalEl = $('#modal');
+const modalMask = $('#modal-mask');
+
+const openModal = (html) => {
+  modalEl.innerHTML = html;
+  modalMask.classList.add('is-open');
+  modalEl._lastFocus = document.activeElement;
+  const first = modalEl.querySelector('input, select, textarea, button');
+  if (first) first.focus();
+};
+
+const closeModal = () => {
+  modalMask.classList.remove('is-open');
+  if (modalEl._lastFocus) modalEl._lastFocus.focus();
+};
+
+const toastStack = $('#toast-stack');
+const toast = (msg, type = 'default') => {
+  toastStack.innerHTML = '';
+  const el = h(`<div class="toast ${type === 'success' ? 'toast--success' : type === 'danger' ? 'toast--danger' : ''}">${msg}</div>`);
+  toastStack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('is-leaving');
+    setTimeout(() => el.remove(), 220);
+  }, 3000);
+};
+
+/* ESC 关闭 + 点遮罩关闭 */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (modalMask.classList.contains('is-open')) closeModal();
+    else if (drawerEl.classList.contains('is-open')) closeDrawer();
+    else if (reviewPanel.classList.contains('is-open')) toggleReview(false);
+  }
+  if (e.shiftKey && e.key === '?') toggleReview();
+});
+
+maskEl.addEventListener('click', closeDrawer);
+modalMask.addEventListener('click', (e) => { if (e.target === modalMask) closeModal(); });
+
+/* ============================================================
+   评审模式
+   ============================================================ */
+const reviewPanel = $('#review-panel');
+let reqMap = [];
+try { reqMap = JSON.parse($('#req-map').textContent); } catch { reqMap = []; }
+
+const toggleReview = (force) => {
+  const open = force !== undefined ? force : !reviewPanel.classList.contains('is-open');
+  reviewPanel.classList.toggle('is-open', open);
+  reviewPanel.setAttribute('aria-hidden', String(!open));
+  if (open) renderReview();
+};
+
+/* 评审要覆盖所有路由，不能只看当前页 —— 遍历每个路由各渲染一次统计 */
+const collectHits = () => {
+  const hits = {};
+  const note = (root) => {
+    root.querySelectorAll('[data-req]').forEach(el => {
+      const id = el.dataset.req;
+      hits[id] = (hits[id] || 0) + 1;
+    });
+  };
+
+  // 当前页 DOM（含抽屉 / 弹窗里已挂载的元素）
+  note(document);
+
+  // 其它路由：临时渲染到离屏容器，统计完丢弃
+  const savedHash = location.hash;
+  const sandbox = document.createElement('div');
+  sandbox.style.cssText = 'position:absolute;left:-99999px;top:0;width:1280px;';
+  document.body.appendChild(sandbox);
+
+  for (const r of ROUTES) {
+    try {
+      // 路由可声明 sampleArgs 提供真实样例参数；没声明就用占位串
+      const sampleArgs = { ...(r.sampleArgs || {}) };
+      r.path.split('/').filter(Boolean).forEach(seg => {
+        const key = seg.startsWith(':') ? seg.slice(1) : null;
+        if (key && sampleArgs[key] === undefined) sampleArgs[key] = '__sample__';
+      });
+      // 每个路由都扫一遍全部状态变体，确保空态/错误态/骨架屏里的 data-req 也被计入
+      const baseParams = { ...(r.sampleParams || {}) };
+      for (const st of ['normal', 'loading', 'empty', 'error']) {
+        try {
+          const node = r.render({ args: sampleArgs, params: { ...baseParams, state: st }, state });
+          if (node) sandbox.appendChild(node);
+        } catch { /* 该状态不支持就跳过 */ }
+      }
+    } catch { /* 某路由渲染失败不影响其它 */ }
+  }
+  note(sandbox);
+  sandbox.remove();
+
+  // 只存在于弹窗 / 抽屉里的交互，路由渲染扫不到。
+  // 模块可用 PROBES 声明「点开它，再扫一遍」：
+  //   const PROBES = [() => openAssignModal(), () => openProgressModal()];
+  // 探测后立刻关掉，避免影响用户当前视图。
+  if (typeof PROBES !== 'undefined') {
+    for (const probe of PROBES) {
+      try {
+        probe();
+        // 弹窗/抽屉可能是多个容器（.drawer 常驻空壳），要逐个扫，不能只取第一个
+        document.querySelectorAll('.modal, .drawer, [data-layer], dialog[open]').forEach(note);
+        if (typeof closeModal === 'function') closeModal();
+        if (typeof closeDrawer === 'function') closeDrawer();
+      } catch { /* 单个探测失败不影响统计 */ }
+    }
+  }
+
+  location.hash = savedHash;
+  return hits;
+};
+
+const renderReview = () => {
+  const hits = collectHits();
+  const known = new Set(reqMap.map(r => r.id));
+  const orphans = [...new Set(Object.keys(hits).filter(k => !known.has(k)))];
+
+  const rows = reqMap.map(r => {
+    const n = hits[r.id] || 0;
+    const cls = n > 0 ? 'ok' : (r.pri === 'P2' ? 'warn' : 'bad');
+    const icon = n > 0 ? '✓' : (r.pri === 'P2' ? '!' : '✕');
+    return `<div class="review-row review-row--${cls}" title="${r.src || ''}">
+      <span class="review-row__icon">${icon}</span>
+      <span class="review-row__id">${r.id}</span>
+      <span class="review-row__name">${r.name}</span>
+      <span class="review-row__meta">${r.pri}${n ? ' · ' + n : ''}</span>
+    </div>`;
+  }).join('');
+
+  const orphanRows = orphans.length
+    ? `<div class="review-sep">原型里多出来的</div>` + orphans.map(id =>
+        `<div class="review-row review-row--info"><span class="review-row__icon">?</span><span class="review-row__id">${id}</span><span class="review-row__name">需求清单里没有</span></div>`
+      ).join('')
+    : '';
+
+  const okCount = reqMap.filter(r => hits[r.id]).length;
+  $('#review-body').innerHTML = `
+    <div class="review-summary">${okCount}/${reqMap.length} 条需求已实现</div>
+    ${rows}
+    ${orphanRows}
+  `;
+};
+
+$('#review-btn').addEventListener('click', () => toggleReview());
+$('#review-close').addEventListener('click', () => toggleReview(false));
+
+/* ============================================================
+   启动
+   ============================================================ */
+window.addEventListener('hashchange', render);
+if (!location.hash) location.hash = '#/orders';
+render();
+</script>
+</body>
+</html>
