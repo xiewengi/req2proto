@@ -171,6 +171,30 @@ warn 可以选择性忽略，但要在交付说明里写出来。
 
 规则表见 [references/html-contract.md](references/html-contract.md) 第六节。
 
+### 维护本 skill 自己时：跑全量检查
+
+改 `assets/` `scripts/` `references/` 之后，单跑 validate 不够——它只看原型，看不出构建脚本能否跑通、组件页 DOM 有没有坏、文档链接是否失效。
+
+```bash
+node scripts/check-all.mjs              # 全量：构建 + 校验 + DOM + token + 对比度 + 文档链接
+node scripts/check-all.mjs --no-build   # 跳过构建，只体检现有产物
+node scripts/check-all.mjs --json       # 供 CI 消费
+```
+
+它跑 7 组检查，**有一项 error 就不该 commit**：
+
+| 组 | 查什么 |
+|---|---|
+| 构建 | 4 个构建脚本逐个跑通、产物真的更新、产物与仓库一致（源码改了忘重新构建会在这里红） |
+| 零外部请求 | 所有 html 无 CDN / `fetch` / 阻塞弹窗 |
+| 结构校验 | `examples/` 和 `out/` 下的原型跑 validate，必须 0 error（`assets/` 下的参考页只查外链） |
+| 内联体检 | 重复 id、锚点死链、`<svg>` 缺 viewBox、内联 JS 语法、`<style>` 大括号平衡、占位符残留 |
+| 设计 token | 共享样式不许写死 hex；`var(--x)`（无 fallback）必须有定义 |
+| 主题对比度 | 8 套主题 × 亮/暗，品牌色对比度全部 ≥ 4.5:1 |
+| 文档链接 | README / SKILL / references 里的相对链接和 `scripts/*.mjs` 引用都真实存在 |
+
+`out/` 是用户自己的产出（`.gitignore` 里），不参与仓库体检。
+
 ---
 
 ## 6. 交付（Step 6）

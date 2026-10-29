@@ -62,6 +62,12 @@ node scripts/validate.mjs out/feature/feature.html
 
 会硬性检查外部请求、路由缺失、需求覆盖、对话框阻塞等 10 类问题，并给出**可自动修的明细**。
 
+维护这个 skill 本身（改 `assets/` `scripts/` `references/`）时，改用全量检查——一条命令跑完构建 + 全部校验 + 组件页 DOM 体检 + 主题对比度 + 文档死链：
+
+```bash
+node scripts/check-all.mjs        # 绿灯才 commit
+```
+
 ## 两份组件参考
 
 | 文件 | 风格 | 什么时候看 |
@@ -96,6 +102,7 @@ scripts/
   build-components-antd.mjs antd 组件页构建
   build-preview.mjs         主题预览构建
   check-contrast.mjs        配色对比度检查 + 建议值
+  check-all.mjs             全量检查：构建 + 校验 + DOM + token + 对比度 + 文档链接
   batch.mjs                 BYOK 批量生成（CI 用，可选）
 ```
 
